@@ -52,14 +52,7 @@ module.exports = {
     getAllLinings: (callBack) => {
         pool.query(
                 `Select name , image , content , price From linings`,
-            [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
-            ],
+            [],
             (error, results, fields) => {
                 if (error) {
                     callBack(error);
