@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { checkToken } = require("../../Auth/token_validation");
+const { checkToken } = require("../Auth/token_validation");
 const {
     getDefault,
     fabricList,
@@ -8,11 +8,11 @@ const {
     setRender
 } = require("./user.controller");
 
-router.get("/api/default/fetch/all", getDefault);
-router.get("/api/fabric/list", fabricList);
-router.get("/api/lining/list", liningList);
-router.get("/api/button/list", buttonList);
-router.get("/api/:fabricId/:liningId/:buttonId/:size/:model/:shot", setRender);
+router.get("default/fetch/all", getDefault);
+router.get("fabric/list/fetch", fabricList);
+router.get("lining/list/fetch", liningList);
+router.get("button/list/fetch", buttonList);
+router.get(":fabricId/:liningId/:buttonId/:size/:model/:shot", setRender);
 
 
 module.exports = router;
