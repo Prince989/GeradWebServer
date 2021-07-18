@@ -1,10 +1,57 @@
 const pool = require("../../config/database");
 
 module.exports = {
-    getDefaultFabric : (data, callBack) => {
+    getDefaultFabric : (callBack) => {
         pool.query(
-                `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
+                `Select name , image , dirname From fabrics limit 1`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getDefaultLining : (callBack) => {
+        pool.query(
+                `Select name , image, dirname From linings limit 1`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getDefaultButton : (callBack) => {
+        pool.query(
+            `Select name , image, dirname From buttons limit 1`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getAllFabrics: (callBack) => {
+        pool.query(
+                `Select name , image , content , price From fabrics`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getAllLinings: (callBack) => {
+        pool.query(
+                `Select name , image , content , price From linings`,
             [
                 data.first_name,
                 data.last_name,
@@ -21,17 +68,23 @@ module.exports = {
             }
         );
     },
-    getDefaultLining : (data, callBack) => {
+    getAllButtons: (callBack) => {
         pool.query(
-                `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
+                `Select name , image , content , price From buttons`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getFabricDir: (id, callBack) => {
+        pool.query(
+            `Select dirname From fabrics where id = ?`,
             [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
+                id
             ],
             (error, results, fields) => {
                 if (error) {
@@ -41,17 +94,11 @@ module.exports = {
             }
         );
     },
-    getDefaultButton : (data, callBack) => {
+    getLiningDir: (id, callBack) => {
         pool.query(
-            `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
+            `Select dirname From linings where id = ?`,
             [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
+                id
             ],
             (error, results, fields) => {
                 if (error) {
@@ -61,17 +108,11 @@ module.exports = {
             }
         );
     },
-    getAllFabrics: (data, callBack) => {
+    getButtonDir: (id, callBack) => {
         pool.query(
-                `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
+            `Select dirname From buttons where id = ?`,
             [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
+                id
             ],
             (error, results, fields) => {
                 if (error) {
@@ -80,45 +121,5 @@ module.exports = {
                 return callBack(null, results);
             }
         );
-    },
-    getAllLinings: (data, callBack) => {
-        pool.query(
-                `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
-            [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    },
-    getAllButtons: (data, callBack) => {
-        pool.query(
-                `insert into registration(firstName, lastName, gender, email, password, number) 
-                values(?,?,?,?,?,?)`,
-            [
-                data.first_name,
-                data.last_name,
-                data.gender,
-                data.email,
-                data.password,
-                data.number
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    },
-}
+    }
+};
