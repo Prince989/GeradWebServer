@@ -3,8 +3,11 @@ const {
     fetchDirs,
     AddFabric
 } = require("./admin.controller");
+const {
+    checkToken
+} = require("../../auth/token_validation");
 
-router.get("/fetch/dirs",fetchDirs);
-router.post("/upload",AddFabric);
+router.get("/fetch/dirs",checkToken,fetchDirs);
+router.post("/upload",checkToken,AddFabric);
 
 module.exports = router;

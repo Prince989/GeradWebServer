@@ -4,6 +4,7 @@ const app = express();
 var cors = require('cors');
 const userRouter = require("./api/user/user.router");
 const adminRouter = require("./api/admin/admin.router");
+const authRouter = require("./api/auth/login/login.router");
 const fileUpload = require('express-fileupload');
 
 app.use(express.json());
@@ -20,7 +21,7 @@ app.use(fileUpload({
 
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
-
+app.use("/api/auth",authRouter);
 const port = 8085;
 
 app.listen(port, () => {
