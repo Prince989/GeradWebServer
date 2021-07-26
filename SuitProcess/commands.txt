@@ -1,3 +1,0 @@
-"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Suit\\Suit.blend" -f 1
-
-"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Suit\\Suit.blend" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeTexture.py" -- 30 -- 8 -- oppp
