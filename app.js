@@ -22,7 +22,7 @@ app.use(fileUpload({
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/auth",authRouter);
-const port = 8085;
+const port = 8080;
 
 app.listen(port, () => {
     console.log("server up and running on PORT :", port);

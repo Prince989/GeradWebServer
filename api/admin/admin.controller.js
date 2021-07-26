@@ -4,8 +4,14 @@ const {
     InsertFabric,
 
 } = require("./admin.model");
+
+const {
+    renderPreview
+} = require("../../command.handler");
+
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
+const prefix_url = "http://192.168.10.120:8080";
 
 async function createDir(dir) {
     try {
@@ -51,7 +57,7 @@ module.exports = {
     
         DiffuseMap = req.files.DiffuseMap;
         NormalMap = req.files.NormalMap;
-        AmbientMap = req.files.AmbientMap;
+        AlphaMap = req.files.AlphaMap;
         RoughnessMap = req.files.RoughnessMap;
         MetalMap = req.files.MetalMap;
         try{
@@ -75,7 +81,7 @@ module.exports = {
             if (err)
                 return res.status(500).send(err);
         });
-        AmbientMap.mv(uploadPath + "AmbientMap.jpg", function (err) {
+        AlphaMap.mv(uploadPath + "AlphaMap.jpg", function (err) {
             if (err)
                 return res.status(500).send(err);
         });
@@ -94,10 +100,42 @@ module.exports = {
                     message: "Database connection errror"
                 });
             }
-            res.json({
-                success: 1,
-                message: "Added Successfully"
-            })
+            else{
+                res.json({
+                    success: 1,
+                    message: "Added Successfully"
+                })
+            }
         });
+    },
+    RenderPreview : (req,res) =>{
+        suitTile = req.body.suitTile
+        collarTile = req.body.collarTile
+        fdirname = req.body.fdirname
+
+        if(!suitTile)
+            res.json({
+                Message : "Suit tile not Set!"
+            })
+        if(!collarTile){
+            res.json({
+                Message : "Collar tile not Set!"
+            })
+        }
+        renderPreview(suitTile,collarTile,fdirname,(err,str) => {
+            if(err){
+                res.json({
+                    success : 0,
+                    message : err
+                })
+            }
+            if(str){
+                res.json({
+                    success : 1,
+                    message : "Preview Rendered Successfully!",
+                    url : `${prefix_url}/uploads/preview/0001.png`
+                })
+            }
+        })
     }
 };
