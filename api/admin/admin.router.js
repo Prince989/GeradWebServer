@@ -2,7 +2,9 @@ const router = require("express").Router();
 const {
     fetchDirs,
     AddFabric,
-    RenderPreview
+    RenderPreview,
+    FabricRender,
+    DeleteFabric
 } = require("./admin.controller");
 const {
     checkToken
@@ -11,5 +13,7 @@ const {
 router.get("/fetch/dirs",fetchDirs);
 router.post("/fabric/upload",AddFabric);
 router.post("/fabric/set/tile",RenderPreview);
+router.post("/fabric/render",FabricRender);
+router.delete("/fabric/delete/:id",DeleteFabric);
 
 module.exports = router;

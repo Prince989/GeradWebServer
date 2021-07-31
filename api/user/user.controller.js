@@ -10,7 +10,7 @@ const {
     getButtonDir
 } = require("./user.model");
 
-const prefix_url = "http://192.168.10.120:8085/";
+const prefix_url = "http://192.168.10.120:8080/";
 const postfix_url = "render.png";
 
 module.exports = {
