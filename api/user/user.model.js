@@ -37,10 +37,11 @@ module.exports = {
             }
         );
     },
-    getAllFabrics: (callBack) => {
+    getAllFabrics: (data,callBack) => {
         pool.query(
-                `Select name , image , content , price From fabrics`,
-            [],
+                `Select id , name , image , content , price From fabrics`,
+            [
+            ],
             (error, results, fields) => {
                 if (error) {
                     callBack(error);
@@ -51,7 +52,7 @@ module.exports = {
     },
     getAllLinings: (callBack) => {
         pool.query(
-                `Select name , image , content , price From linings`,
+                `Select id , name , image , content , price From linings`,
             [],
             (error, results, fields) => {
                 if (error) {
@@ -63,7 +64,7 @@ module.exports = {
     },
     getAllButtons: (callBack) => {
         pool.query(
-                `Select name , image , content , price From buttons`,
+                `Select id , name , image , content , price From buttons`,
             [],
             (error, results, fields) => {
                 if (error) {

@@ -4,6 +4,7 @@ const {
     getDirs,
     InsertFabric,
     deleteFabric,
+    getAllFabrics,
     selectDirById
 } = require("./admin.model");
 
@@ -54,7 +55,8 @@ module.exports = {
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).send('No files were uploaded.');
         }
-    
+        console.log(req.files);
+
         let fname = req.body.name;
         let fcontent = req.body.content;
         let fprice = req.body.price;
@@ -98,7 +100,7 @@ module.exports = {
             if (err)
                 return res.status(500).send(err);
         });
-        iconpath = `.\\public\\listIcons\\fabrics\\${fdirname}\\`;
+        iconpath = `.\\public\\listIcons\\fabrics\\`;
         Icon.mv(iconpath + `${fdirname}.jpg`,function (err) {
             if(err)
                 return res.status(500).send(err);
@@ -230,8 +232,9 @@ module.exports = {
                     });
                 }
                 uploadpath = `${local_prefix_url}/uploads/fabrics/${fdirname}`;
-                fs.rmdir(uploadpath, { recursive: false },(err) => {
+                fs.rmdir(uploadpath, { recursive: true },(err) => {
                     if(err){
+                        console.log(err);
                         return res.json({
                             "Success" : "0",
                             "Message" : "problem with removing upload directory!"
@@ -245,21 +248,66 @@ module.exports = {
                                 "Message" : "problem with removing render directory!"
                             })
                         }
-                        return res.json({
-                            "Success" : 1,
-                            "Message" : "Deleted SuccessFully!"
-                        })
+                        fs.unlink(`${local_prefix_url}/listIcons/fabrics/${fdirname}.jpg`,(err) => {
+                           if(err){
+                               console.log(err);
+                               return res.json({
+                                "Success" : "0",
+                                "Message" : "problem with removing icons!"
+                                })
+                            }
+                            return res.json({
+                                "Success" : 1,
+                                "Message" : "Deleted SuccessFully!"
+                            })
+                       })
                     })
                 })
             })
         })
-    }
+    },
+    fabricList: (req, res) => {
+/*        index = req.param("index")
+        ratio = req.param("pageItem")*/
+        index = req.query.index
+        ratio = req.query.pageItem
+        if(index == undefined)
+            return res.json({
+                "Success" : "0",
+                "Message" : "index not set"
+            })
+        data = {}
+        data["ratio"] = ratio
+        data["index"] = index
+        getAllFabrics(data,(err, results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            let output = [];
+            results.map(item => {
+                output.push(
+                    {
+                        "id" : item.id,
+                        "name": item.name,
+                        "image": item.image,
+                        "content": item.content,
+                        "price": item.price,
+                    }
+                )
+            });
+            res.json(output);
+        });
+    },
 };
 
 function removeAllRenderDirectories(fdirname,i,callBack){
     if(i < emodel.length){
         console.log(`${local_prefix_url}/Fabrics/m/${emodel[i]}/${fdirname}`);
-        fs.rmdir(`${local_prefix_url}/Fabrics/m/${emodel[i]}/${fdirname}`, { recursive: false },(err) => {
+        fs.rmdir(`${local_prefix_url}/Fabrics/m/${emodel[i]}/${fdirname}`, { recursive: true },(err) => {
             if(err){
                 callBack(err);
                 return;

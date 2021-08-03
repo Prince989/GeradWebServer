@@ -86,8 +86,8 @@ function SetFabricModel(suitTile,collarTile,fdirname,shots,i,j,callback){
             if(j < model.length)
                 SetFabricModel(suitTile,collarTile,fdirname,shots,i,j,callback);
             else
-                callback(null,"SuccessFull!");
-//                RenderFabricModel(fdirname,0,0,callback)
+//                callback(null,"SuccessFull!");
+                RenderFabricModel(fdirname,0,0,callback)
         }
     });
 

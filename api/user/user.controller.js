@@ -83,7 +83,7 @@ module.exports = {
         });
     },
     fabricList: (req, res) => {
-        getAllFabrics((err, results) => {
+        getAllFabrics(data,(err, results) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({
@@ -95,6 +95,7 @@ module.exports = {
             results.map(item => {
                 output.push(
                     {
+                        "id" : item.id,
                         "name": item.name,
                         "image": item.image,
                         "content": item.content,
@@ -118,6 +119,7 @@ module.exports = {
             results.map(item => {
                 output.push(
                     {
+                        "id" : item.id,
                         "name": item.name,
                         "image": item.image,
                         "content": item.content,
@@ -141,6 +143,7 @@ module.exports = {
             results.map(item => {
                 output.push(
                     {
+                        "id" : item.id,
                         "name": item.name,
                         "image": item.image,
                         "content": item.content,

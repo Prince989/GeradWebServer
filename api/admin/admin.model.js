@@ -58,5 +58,22 @@ module.exports = {
                 return callback(null, results);
             }
         );
+    },
+    getAllFabrics: (data,callBack) => {
+        let ratio = parseInt(data.ratio);
+        let from = parseInt(data.index * ratio);
+        pool.query(
+                `Select id , name , image , content , price From fabrics limit ? , ?`,
+            [
+                from,
+                ratio
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
     }
 };
