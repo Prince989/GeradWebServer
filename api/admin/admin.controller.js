@@ -5,17 +5,21 @@ const {
     InsertFabric,
     InsertLining,
     deleteFabric,
+    deleteLining,
     getAllFabrics,
-    selectDirById,
+    getAllLinings,
+    selectFabricDirById,
+    selectLiningDirById,
     getAdminMenu
 } = require("./admin.model");
 
 const {
     eshots,
     emodel,
-    renderPreview,
+    renderFabrics,
     previewLiningRender,
-    previewFabricRenders,
+    previewFabricRender,
+    renderLinings,
 } = require("../../command.handler");
 
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
@@ -214,7 +218,7 @@ module.exports = {
                 Message : "Collar tile not Set!"
             })
         }
-        renderPreview(suitTile,collarTile,fdirname,(err,str) => {
+        previewFabricRender(suitTile,collarTile,fdirname,(err,str) => {
             if(err){
                 res.json({
                     success : 0,
@@ -250,15 +254,15 @@ module.exports = {
         fdirname = req.body.fdirname
 
         if(!suitTile)
-            res.json({
+            return res.json({
                 Message : "Suit tile not Set!"
             })
         if(!collarTile){
-            res.json({
+            return res.json({
                 Message : "Collar tile not Set!"
             })
         }
-        previewFabricRenders(suitTile,collarTile,fdirname,(err,str) => {
+        renderFabrics(suitTile,collarTile,fdirname,(err,str) => {
             if(err){
                 res.json({
                     success : 0,
@@ -282,12 +286,47 @@ module.exports = {
             }
         })
     },
+    LiningRender : (req,res) => {
+        let color = req.body.color;
+        let ldirname = req.body.dirname;
+        if(!color)
+        return res.json({
+            Message : "Color not Set!"
+        })
+        if(!ldirname)
+        return res.json({
+            Message : "Color not Set!"
+        })
+        renderLinings(color,ldirname,(err,str) => {
+            if(err){
+                res.json({
+                    success : 0,
+                    message : err
+                })
+            }
+            if(str){
+                urls = [];
+                for(i = 0;i < emodel.length;i++){
+                    address = `${prefix_url}/Linings/m/${emodel[i]}/${ldirname}`
+                    for(j = 0;j < eshots.length;j++){
+                        url = `${address}/${j+1}/render0001.png`
+                        urls.push(url);
+                    }
+                }
+                res.json({
+                    success : 1,
+                    message : "Linings Rendered Successfully!",
+                    images : urls
+                })
+            }
+        })
+    },
     DeleteFabric : (req,res) => { 
         let id = req.params.id;
         let data = {};
         data["id"] = id;
         
-        selectDirById(data,(err,results) => {
+        selectFabricDirById(data,(err,results) => {
             let fdirname = "";
             if(err){
                 console.log(err);
@@ -327,7 +366,7 @@ module.exports = {
                         })
                     }
                     console.log("upload Directory removed!");
-                    removeAllRenderDirectories(fdirname,0,(err) => {
+                    removeAllFabricRenderDirectories(fdirname,0,(err) => {
                         if(err){
                             return res.json({
                                 "Success" : "0",
@@ -347,6 +386,66 @@ module.exports = {
                                 "Message" : "Deleted SuccessFully!"
                             })
                        })
+                    })
+                })
+            })
+        })
+    },
+    DeleteLining : (req,res) => {
+        let id = req.params.id;
+        let data = {};
+        data["id"] = id;
+        
+        selectLiningDirById(data,(err,results) => {
+            let ldirname = "";
+            if(err){
+                console.log(err);
+                return res.json({
+                    "Success" : "0",
+                    "Message" : "Database connection error"
+                })
+            }
+            if(results.length < 1){
+                return res.json({
+                    "Success" : "0",
+                    "Message" : "No Lining Found!"
+                })
+            }
+            ldirname = results[0].dirname;
+            deleteLining(data,(err,results) => {
+                if(err){
+                    console.log(err);
+                    return res.json({
+                        "Success" : 0,
+                        "Message" : err
+                    })
+                }
+                if(results.affectedRows < 1){
+                    return res.json({
+                        "Success" : "1",
+                        "Message" : "Lining Not Found!"
+                    });
+                }
+                uploadpath = `${local_prefix_url}/uploads/linings/${ldirname}`;
+                removeAllLiningRenderDirectories(ldirname,0,(err) => {
+                    if(err){
+                        return res.json({
+                            "Success" : "0",
+                            "Message" : "problem with removing render directory!"
+                        })
+                    }
+                    fs.unlink(`${local_prefix_url}/listIcons/linings/${ldirname}.jpg`,(err) => {
+                        if(err){
+                            console.log(err);
+                            return res.json({
+                            "Success" : "0",
+                            "Message" : "problem with removing icons!"
+                            })
+                        }
+                        return res.json({
+                            "Success" : 1,
+                            "Message" : "Deleted SuccessFully!"
+                        })
                     })
                 })
             })
@@ -388,6 +487,40 @@ module.exports = {
             res.json(output);
         });
     },
+    liningList : (req,res) => {
+        index = req.query.index
+        ratio = req.query.pageItem
+        if(index == undefined)
+            return res.json({
+                "Success" : "0",
+                "Message" : "index not set"
+            })
+        data = {}
+        data["ratio"] = ratio
+        data["index"] = index
+        getAllLinings(data,(err, results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            let output = [];
+            results.map(item => {
+                output.push(
+                    {
+                        "id" : item.id,
+                        "name": item.name,
+                        "image": item.image,
+                        "content": item.content,
+                        "price": item.price,
+                    }
+                )
+            });
+            res.json(output);
+        });
+    },
     fetchAdminMenu : (req,res) => {
         getAdminMenu((err,results) => {
             if (err) {
@@ -401,8 +534,11 @@ module.exports = {
             results.map(item => {
                 output.push(
                     {
+                        id : item.id,
                         value : item.value,
-                        type: item.type
+                        type: item.type,
+                        show_name : item.show_name,
+                        icon : `${prefix_url}/listIcons/${item.value}s/Main_Icon/${item.value}.svg`
                     }
                 )
             });
@@ -411,7 +547,7 @@ module.exports = {
     }
 };
 
-function removeAllRenderDirectories(fdirname,i,callBack){
+function removeAllFabricRenderDirectories(fdirname,i,callBack){
     if(i < emodel.length){
         console.log(`${local_prefix_url}/Fabrics/m/${emodel[i]}/${fdirname}`);
         fs.rmdir(`${local_prefix_url}/Fabrics/m/${emodel[i]}/${fdirname}`, { recursive: true },(err) => {
@@ -421,7 +557,7 @@ function removeAllRenderDirectories(fdirname,i,callBack){
             }
             i++;
             if(i < emodel.length)
-                removeAllRenderDirectories(fdirname,i,callBack);
+            removeAllFabricRenderDirectories(fdirname,i,callBack);
             else{
                 callBack(null);
                 return;
@@ -429,3 +565,22 @@ function removeAllRenderDirectories(fdirname,i,callBack){
         })
     }
 }
+function removeAllLiningRenderDirectories(fdirname,i,callBack){
+    if(i < emodel.length){
+        console.log(`${local_prefix_url}/Linings/m/${emodel[i]}/${fdirname}`);
+        fs.rmdir(`${local_prefix_url}/Linings/m/${emodel[i]}/${fdirname}`, { recursive: true },(err) => {
+            if(err){
+                callBack(err);
+                return;
+            }
+            i++;
+            if(i < emodel.length)
+            removeAllLiningRenderDirectories(fdirname,i,callBack);
+            else{
+                callBack(null);
+                return;
+            }
+        })
+    }
+}
+

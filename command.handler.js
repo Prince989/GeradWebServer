@@ -17,48 +17,22 @@ let TextureSetCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\
 
 let CompressCommandPreview = "python \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\compressRender.py\" "
 
-let LiningSetColorCommand = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\1\\SuitFrontZoom.blend" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeLiningColorPreview.py" -- "COLOR_VALUE"`;
+let LiningSetColorPreviewCommand = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\1\\SuitFrontZoom.blend" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeLiningColorPreview.py" -- "COLOR_VALUE"`;
 
 let LiningPreviewRender = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\1\\SuitFrontZoom.blend" -f 1`
+
+let LiningSetColorCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe\" -b \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\MODEL_SUIT\\SHOT_BLENDER\" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeLiningColor.py\" -- "COLOR_VALUE" -- DIRECTORY_NAME -- MODEL_SUIT -- SHOT_FILE`;
+
+let RenderLiningCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe\" -b \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\MODEL_SUIT\\SHOT_SUIT.blend\" -o \"E:\\GeradWebServer\\GeradWebServer\\public\\Linings\\m\\MODEL_SUIT\\DIRECTORY_NAME\\SHOT_SUIT\\render\" -f 1 -- --cycles-device CUDA+CPU`;
 
 module.exports = {
     eshots : shots,
 
     emodel : model,
 
-    previewLiningRender : (color,callback) => {
-        let cmd = LiningSetColorCommand.replace("COLOR_VALUE",color);
-        exec(cmd,(error,stdout,stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                callback(error.message,null);
-                return;
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                callback(stderr,null);
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-            
-            exec(LiningPreviewRender,(error,stdout,stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    callback(error.message,null);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    callback(stderr,null);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
-
-                callback(null,1);
-            })
-        });
-    },
-    renderPreview : (suitTile,collarTile,fdirname,callback) => {
+    //Fabrics
+    
+    previewFabricRender : (suitTile,collarTile,fdirname,callback) => {
         console.log(collarTile);
 
         let cmd = TextureSetCommandPreview.replace("SUITTILE_VARIABLE",suitTile).replace("COLLARTILE_VARIABLE",collarTile).replace("DIRECTORY_NAME",fdirname);
@@ -107,13 +81,57 @@ module.exports = {
             });
         });
     },
-    previewFabricRenders : (suitTile,collarTile,fdirname,callback) => {
+    renderFabrics : (suitTile,collarTile,fdirname,callback) => {
         let i = 0 , j = 0;
 
         SetFabricModel(suitTile,collarTile,fdirname,shots,i,j,callback);
 
+    },
+
+    //Linings
+
+    previewLiningRender : (color,callback) => {
+        let cmd = LiningSetColorPreviewCommand.replace("COLOR_VALUE",color);
+        exec(cmd,(error,stdout,stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                callback(error.message,null);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                callback(stderr,null);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            
+            exec(LiningPreviewRender,(error,stdout,stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    callback(error.message,null);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    callback(stderr,null);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+
+                callback(null,1);
+            })
+        });
+    },
+    renderLinings : (color,ldirname,callback) => {
+        let i = 0 , j = 0;
+
+        SetLiningModel(color,ldirname,shots,i,j,callback);
     }
+
 }
+
+//Fabrics Functions
+
 function SetFabricModel(suitTile,collarTile,fdirname,shots,i,j,callback){
 
     SetFabricShot(suitTile,collarTile,fdirname,shots,i,j,callback,(err,succ)=>{
@@ -202,5 +220,92 @@ function RenderFabricShot(fdirname,i,j,callback,callback2){
             RenderFabricShot(fdirname,i,j,callback,callback2);
         else
             callback2(null,1);
+    })
+}
+
+//Linings Functions
+
+function RenderLiningModel(ldirname,i,j,callback){
+    RenderLiningShot(ldirname,i,j,callback,(err,succ) => {
+        if(!err || succ){
+            j++;
+            if(j < model.length)
+            RenderLiningModel(ldirname,i,j,callback);
+            else
+                callback(null,"SuccessFull!");
+        }
+    });
+}
+function RenderLiningShot(ldirname,i,j,callback,callback2){
+    let cmd = RenderLiningCommand
+    .replace("MODEL_SUIT",model[j])
+    .replace("MODEL_SUIT",model[j])
+    .replace("SHOT_SUIT",shots[i])
+    .replace("SHOT_SUIT",i+1)
+    .replace("DIRECTORY_NAME",ldirname)
+    .replace("DIRECTORY_NAME",ldirname)
+
+    exec(cmd,(error,stdout,stderr) => {
+        if(error){
+            console.log(error);
+            callback(error,null);
+            callback2(error,null);
+            return;
+        }   
+        if(stderr){
+            console.log(stderr);
+            callback(stderr,null);
+            callback2(stderr,null);
+            return;
+        } 
+        console.log(stdout);
+        i++;
+        if(i < shots.length)
+            RenderLiningShot(ldirname,i,j,callback,callback2);
+        else
+            callback2(null,1);
+    })
+}
+function SetLiningModel(color,ldirname,shots,i,j,callback){
+    SetLiningShot(color,ldirname,shots,i,j,callback,(err,succ)=>{
+        if(!err || succ){
+            j++;
+            if(j < model.length)
+                SetLiningModel(color,ldirname,shots,i,j,callback);
+            else
+//                callback(null,"SuccessFull!");
+                RenderLiningModel(ldirname,0,0,callback)
+        }
+    });
+}
+function SetLiningShot(color,ldirname,shots,i,j,callback,callbackInner){
+    let cmd = LiningSetColorCommand.replace("COLOR_VALUE",color)
+    .replace("DIRECTORY_NAME",ldirname)
+    .replace("MODEL_SUIT",model[j])
+    .replace("MODEL_SUIT",model[j])
+    .replace("SHOT_BLENDER",shots[i] + ".blend")
+    .replace("SHOT_FILE",shots[i]);
+
+    exec(cmd,(error,stdout,stderr) => {
+        if(error){
+            console.log(error);
+            callback(error,null);
+            callbackInner(error,null);
+            return;
+        }
+        if(stderr){
+            console.log(stderr);
+            callback(stderr,null);
+            callbackInner(error,null);
+            return;
+        }
+        console.log(stdout);
+        i++;
+
+        if(i < shots.length)
+            SetLiningShot(color,ldirname,shots,i,j,callback,callbackInner);
+        else{
+            callbackInner(null,1);
+        }
     })
 }
