@@ -7,7 +7,8 @@ const {
     getAllButtons,
     getFabricDir,
     getLiningDir,
-    getButtonDir
+    getButtonDir,
+
 } = require("./user.model");
 
 const prefix_url = "http://192.168.10.120:8080/";
@@ -203,6 +204,6 @@ module.exports = {
                 });
             });
         });
-    },
+    }
 };
 

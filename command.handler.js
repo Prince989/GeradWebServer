@@ -17,11 +17,47 @@ let TextureSetCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\
 
 let CompressCommandPreview = "python \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\compressRender.py\" "
 
+let LiningSetColorCommand = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\1\\SuitFrontZoom.blend" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeLiningColorPreview.py" -- "COLOR_VALUE"`;
+
+let LiningPreviewRender = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\1\\SuitFrontZoom.blend" -f 1`
+
 module.exports = {
     eshots : shots,
 
     emodel : model,
 
+    previewLiningRender : (color,callback) => {
+        let cmd = LiningSetColorCommand.replace("COLOR_VALUE",color);
+        exec(cmd,(error,stdout,stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                callback(error.message,null);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                callback(stderr,null);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            
+            exec(LiningPreviewRender,(error,stdout,stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    callback(error.message,null);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    callback(stderr,null);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+
+                callback(null,1);
+            })
+        });
+    },
     renderPreview : (suitTile,collarTile,fdirname,callback) => {
         console.log(collarTile);
 

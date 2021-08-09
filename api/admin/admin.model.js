@@ -1,10 +1,12 @@
 const pool = require("../../config/database");
 
 module.exports = {
-    getDirs : (callBack) => {
+    getDirs : (data,callBack) => {
+        let obj = data.object
         pool.query(
-            `Select dirname From fabrics`,
-            [],
+            `Select dirname From ${obj}`,
+            [
+            ],
             (error, results, fields) => {
                 if (error) {
                     callBack(error);
@@ -18,6 +20,25 @@ module.exports = {
             `Insert into fabrics (name,content,price,dirname,image) Values(?,?,?,?,?)`,
             [
                 data.name,
+                data.content,
+                data.price,
+                data.dirname,
+                data.image
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    InsertLining : (data,callBack) => {
+        pool.query(
+            `Insert into linings (name,color,content,price,dirname,image) Values(?,?,?,?,?,?)`,
+            [
+                data.name,
+                data.color,
                 data.content,
                 data.price,
                 data.dirname,
@@ -68,6 +89,18 @@ module.exports = {
                 from,
                 ratio
             ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
+    getAdminMenu : (callBack) => {
+        pool.query(
+            `Select type , value From admin_menu`,
+            [],
             (error, results, fields) => {
                 if (error) {
                     callBack(error);

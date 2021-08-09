@@ -3,16 +3,19 @@ const fs = require("fs");
 const {
     getDirs,
     InsertFabric,
+    InsertLining,
     deleteFabric,
     getAllFabrics,
-    selectDirById
+    selectDirById,
+    getAdminMenu
 } = require("./admin.model");
 
 const {
     eshots,
     emodel,
     renderPreview,
-    previewFabricRenders
+    previewLiningRender,
+    previewFabricRenders,
 } = require("../../command.handler");
 
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
@@ -30,7 +33,8 @@ async function createDir(dir) {
 
 module.exports = {
     fetchDirs : (req,res) =>{
-        getDirs((err,results) => {
+        let object = req.params.object;
+        getAdminMenu((err,results) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({
@@ -38,15 +42,40 @@ module.exports = {
                     message: "Database connection errror"
                 });
             }
-            let output = [];
-            results.map(item => {
-                output.push(
-                    {
-                        "dirname": item.dirname
-                    }
-                )
-            });
-            res.json(output);
+            let flag = false;
+            for(i = 0;i <results.length;i++){
+                if(object.includes(results[i].value)){
+                    flag = true;
+                    object = results[i].value + "s";
+                    break;
+                }
+            }
+            if(!flag){
+                return res.status(400).json({
+                    Success : 0,
+                    Message : "invalid parameter sent : " + object
+                })
+            }
+            data = [];
+            data["object"] = object;
+            getDirs(data,(err,results) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).json({
+                        success: 0,
+                        message: "Database connection errror"
+                    });
+                }
+                let output = [];
+                results.map(item => {
+                    output.push(
+                        {
+                            "dirname": item.dirname
+                        }
+                    )
+                });
+                res.json(output);
+            })
         })
     },
     AddFabric : async (req,res) =>{
@@ -128,7 +157,50 @@ module.exports = {
             }
         });
     },
-    RenderPreview : (req,res) =>{
+    AddLining : (req,res) => {
+        let lname = req.body.name;
+        let lcontent = req.body.content;
+        let lprice = req.body.price;
+        let lcolor = req.body.color;
+        let ldirname = req.body.name.toLowerCase();
+
+        Icon = req.files.Icon;
+      
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send('No files were uploaded.');
+        }
+
+        iconpath = `.\\public\\listIcons\\linings\\`;
+        Icon.mv(iconpath + `${ldirname}.jpg`,function (err) {
+            if(err)
+                return res.status(500).send(err);
+        })
+
+        iconpath = `${prefix_url}/listIcons/linings/${ldirname}.jpg`
+
+        let data = {name : lname , color : lcolor , content : lcontent , price : lprice , dirname : ldirname,image : iconpath}
+
+        InsertLining(data,(err,results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            else{
+                try{
+                    res.json({
+                        success: 1,
+                        message: "Added Successfully"
+                    })
+                }catch(e){
+                    console.log(e);
+                }
+            }
+        });
+    },
+    FabricRenderPreview : (req,res) =>{
         suitTile = req.body.suitTile
         collarTile = req.body.collarTile
         fdirname = req.body.fdirname
@@ -157,6 +229,20 @@ module.exports = {
                 })
             }
         })
+    },
+    LiningRenderPreview : (req,res) =>{
+        let color = req.body.color;
+        previewLiningRender(color,(err,success)=>{
+            if(err){
+                return res.status(500).json({
+                    "Success" : "0",
+                    "Message" : err
+                })
+            }
+            res.json({
+                preview : `${prefix_url}/uploads/preview/L0001.png`
+            })
+        });
     },
     FabricRender : (req,res) => {
         suitTile = req.body.suitTile
@@ -302,6 +388,27 @@ module.exports = {
             res.json(output);
         });
     },
+    fetchAdminMenu : (req,res) => {
+        getAdminMenu((err,results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            let output = [];
+            results.map(item => {
+                output.push(
+                    {
+                        value : item.value,
+                        type: item.type
+                    }
+                )
+            });
+            res.json(output);
+        })
+    }
 };
 
 function removeAllRenderDirectories(fdirname,i,callBack){
