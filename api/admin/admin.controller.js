@@ -4,12 +4,16 @@ const {
     getDirs,
     InsertFabric,
     InsertLining,
+    InsertButton,
     deleteFabric,
     deleteLining,
+    deleteButton,
     getAllFabrics,
     getAllLinings,
+    getAllButtons,
     selectFabricDirById,
     selectLiningDirById,
+    selectButtonDirById,
     getAdminMenu
 } = require("./admin.model");
 
@@ -19,7 +23,9 @@ const {
     renderFabrics,
     previewLiningRender,
     previewFabricRender,
+    previewButtonRender,
     renderLinings,
+    renderButtons,
 } = require("../../command.handler");
 
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
@@ -167,7 +173,7 @@ module.exports = {
         let lprice = req.body.price;
         let lcolor = req.body.color;
         let ldirname = req.body.name.toLowerCase();
-
+        
         Icon = req.files.Icon;
       
         if (!req.files || Object.keys(req.files).length === 0) {
@@ -185,6 +191,49 @@ module.exports = {
         let data = {name : lname , color : lcolor , content : lcontent , price : lprice , dirname : ldirname,image : iconpath}
 
         InsertLining(data,(err,results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            else{
+                try{
+                    res.json({
+                        success: 1,
+                        message: "Added Successfully"
+                    })
+                }catch(e){
+                    console.log(e);
+                }
+            }
+        });
+    },
+    AddButton : (req,res) => {
+        let bname = req.body.name;
+        let bcontent = req.body.content;
+        let bprice = req.body.price;
+        let bcolor = req.body.color;
+        let bdirname = req.body.name.toLowerCase();
+        
+        Icon = req.files.Icon;
+      
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).send('No files were uploaded.');
+        }
+
+        iconpath = `.\\public\\listIcons\\buttons\\`;
+        Icon.mv(iconpath + `${bdirname}.jpg`,function (err) {
+            if(err)
+                return res.status(500).send(err);
+        })
+
+        iconpath = `${prefix_url}/listIcons/buttons/${bdirname}.jpg`
+
+        let data = {name : bname , color : bcolor , content : bcontent , price : bprice , dirname : bdirname,image : iconpath}
+
+        InsertButton(data,(err,results) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({
@@ -248,6 +297,20 @@ module.exports = {
             })
         });
     },
+    ButtonRenderPreview : (req,res) =>{
+        let color = req.body.color;
+        previewButtonRender(color,(err,success)=>{
+            if(err){
+                return res.status(500).json({
+                    "Success" : "0",
+                    "Message" : err
+                })
+            }
+            res.json({
+                preview : `${prefix_url}/uploads/preview/B0001.png`
+            })
+        });
+    },
     FabricRender : (req,res) => {
         suitTile = req.body.suitTile
         collarTile = req.body.collarTile
@@ -288,14 +351,14 @@ module.exports = {
     },
     LiningRender : (req,res) => {
         let color = req.body.color;
-        let ldirname = req.body.dirname;
+        let ldirname = req.body.fdirname;
         if(!color)
         return res.json({
             Message : "Color not Set!"
         })
         if(!ldirname)
         return res.json({
-            Message : "Color not Set!"
+            Message : "Dirname not Set!"
         })
         renderLinings(color,ldirname,(err,str) => {
             if(err){
@@ -316,6 +379,41 @@ module.exports = {
                 res.json({
                     success : 1,
                     message : "Linings Rendered Successfully!",
+                    images : urls
+                })
+            }
+        })
+    },
+    ButtonRender : (req,res) => {
+        let color = req.body.color;
+        let bdirname = req.body.fdirname;
+        if(!color)
+        return res.json({
+            Message : "Color not Set!"
+        })
+        if(!bdirname)
+        return res.json({
+            Message : "Dirname not Set!"
+        })
+        renderButtons(color,bdirname,(err,str) => {
+            if(err){
+                res.json({
+                    success : 0,
+                    message : err
+                })
+            }
+            if(str){
+                urls = [];
+                for(i = 0;i < emodel.length;i++){
+                    address = `${prefix_url}/Buttons/m/${emodel[i]}/${bdirname}`
+                    for(j = 0;j < eshots.length;j++){
+                        url = `${address}/${j+1}/render0001.png`
+                        urls.push(url);
+                    }
+                }
+                res.json({
+                    success : 1,
+                    message : "Buttons Rendered Successfully!",
                     images : urls
                 })
             }
@@ -451,6 +549,66 @@ module.exports = {
             })
         })
     },
+    DeleteButton : (req,res) => {
+        let id = req.params.id;
+        let data = {};
+        data["id"] = id;
+        
+        selectButtonDirById(data,(err,results) => {
+            let bdirname = "";
+            if(err){
+                console.log(err);
+                return res.json({
+                    "Success" : "0",
+                    "Message" : "Database connection error"
+                })
+            }
+            if(results.length < 1){
+                return res.json({
+                    "Success" : "0",
+                    "Message" : "No Button Found!"
+                })
+            }
+            bdirname = results[0].dirname;
+            deleteButton(data,(err,results) => {
+                if(err){
+                    console.log(err);
+                    return res.json({
+                        "Success" : 0,
+                        "Message" : err
+                    })
+                }
+                if(results.affectedRows < 1){
+                    return res.json({
+                        "Success" : "1",
+                        "Message" : "Button Not Found!"
+                    });
+                }
+                uploadpath = `${local_prefix_url}/uploads/buttons/${bdirname}`;
+                removeAllButtonRenderDirectories(bdirname,0,(err) => {
+                    if(err){
+                        return res.json({
+                            "Success" : "0",
+                            "Message" : "problem with removing render directory!"
+                        })
+                    }
+                    fs.unlink(`${local_prefix_url}/listIcons/buttons/${bdirname}.jpg`,(err) => {
+                        if(err){
+                            console.log(err);
+                            return res.json({
+                            "Success" : "0",
+                            "Message" : "problem with removing icons!"
+                            })
+                        }
+                        return res.json({
+                            "Success" : 1,
+                            "Message" : "Deleted SuccessFully!"
+                        })
+                    })
+                })
+            })
+        })
+    },
     fabricList: (req, res) => {
 /*        index = req.param("index")
         ratio = req.param("pageItem")*/
@@ -499,6 +657,40 @@ module.exports = {
         data["ratio"] = ratio
         data["index"] = index
         getAllLinings(data,(err, results) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            let output = [];
+            results.map(item => {
+                output.push(
+                    {
+                        "id" : item.id,
+                        "name": item.name,
+                        "image": item.image,
+                        "content": item.content,
+                        "price": item.price,
+                    }
+                )
+            });
+            res.json(output);
+        });
+    },
+    buttonList : (req,res) => {
+        index = req.query.index
+        ratio = req.query.pageItem
+        if(index == undefined)
+            return res.json({
+                "Success" : "0",
+                "Message" : "index not set"
+            })
+        data = {}
+        data["ratio"] = ratio
+        data["index"] = index
+        getAllButtons(data,(err, results) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({
@@ -583,4 +775,21 @@ function removeAllLiningRenderDirectories(fdirname,i,callBack){
         })
     }
 }
-
+function removeAllButtonRenderDirectories(fdirname,i,callBack){
+    if(i < emodel.length){
+        console.log(`${local_prefix_url}/Buttons/m/${emodel[i]}/${fdirname}`);
+        fs.rmdir(`${local_prefix_url}/Buttons/m/${emodel[i]}/${fdirname}`, { recursive: true },(err) => {
+            if(err){
+                callBack(err);
+                return;
+            }
+            i++;
+            if(i < emodel.length)
+            removeAllButtonRenderDirectories(fdirname,i,callBack);
+            else{
+                callBack(null);
+                return;
+            }
+        })
+    }
+}

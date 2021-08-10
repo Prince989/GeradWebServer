@@ -12,7 +12,7 @@ const {
 } = require("./user.model");
 
 const prefix_url = "http://192.168.10.120:8080/";
-const postfix_url = "render.png";
+const postfix_url = "render0001.png";
 
 module.exports = {
     getDefault: (req, res) => {
@@ -84,6 +84,7 @@ module.exports = {
         });
     },
     fabricList: (req, res) => {
+        let data = [];
         getAllFabrics(data,(err, results) => {
             if (err) {
                 console.log(err);
@@ -206,4 +207,3 @@ module.exports = {
         });
     }
 };
-

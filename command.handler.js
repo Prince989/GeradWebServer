@@ -25,6 +25,15 @@ let LiningSetColorCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.
 
 let RenderLiningCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe\" -b \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Linings\\MODEL_SUIT\\SHOT_SUIT.blend\" -o \"E:\\GeradWebServer\\GeradWebServer\\public\\Linings\\m\\MODEL_SUIT\\DIRECTORY_NAME\\SHOT_SUIT\\render\" -f 1 -- --cycles-device CUDA+CPU`;
 
+let ButtonSetColorPreviewCommand = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Preview\\Button\\SuitFrontZoom.blend" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeButtonColorPreview.py" -- "COLOR_VALUE"`;
+
+let ButtonPreviewRender = `"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe" -b "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Preview\\Button\\SuitFrontZoom.blend" -f 1`
+
+let ButtonSetColorCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe\" -b \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Buttons\\MODEL_SUIT\\SHOT_BLENDER\" -P "E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\script\\changeButtonColor.py\" -- "COLOR_VALUE" -- DIRECTORY_NAME -- MODEL_SUIT -- SHOT_FILE`;
+
+let RenderButtonCommand = `\"E:\\Program Files\\Blender Foundation\\Blender 2.93\\blender.exe\" -b \"E:\\GeradWebServer\\GeradWebServer\\SuitProcess\\Buttons\\MODEL_SUIT\\SHOT_SUIT.blend\" -o \"E:\\GeradWebServer\\GeradWebServer\\public\\Buttons\\m\\MODEL_SUIT\\DIRECTORY_NAME\\SHOT_SUIT\\render\" -f 1 -- --cycles-device CUDA+CPU`;
+
+
 module.exports = {
     eshots : shots,
 
@@ -126,6 +135,46 @@ module.exports = {
         let i = 0 , j = 0;
 
         SetLiningModel(color,ldirname,shots,i,j,callback);
+    },
+
+    //Buttons
+
+    previewButtonRender : (color,callback) => {
+        let cmd = ButtonSetColorPreviewCommand.replace("COLOR_VALUE",color);
+        exec(cmd,(error,stdout,stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                callback(error.message,null);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                callback(stderr,null);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            
+            exec(ButtonPreviewRender,(error,stdout,stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    callback(error.message,null);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    callback(stderr,null);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+
+                callback(null,1);
+            })
+        });
+    },
+    renderButtons : (color,bdirname,callback) => {
+        let i = 0 , j = 0;
+
+        SetButtonModel(color,bdirname,shots,i,j,callback);
     }
 
 }
@@ -309,3 +358,91 @@ function SetLiningShot(color,ldirname,shots,i,j,callback,callbackInner){
         }
     })
 }
+
+//Buttons Functions
+
+function RenderButtonModel(bdirname,i,j,callback){
+    RenderButtonShot(bdirname,i,j,callback,(err,succ) => {
+        if(!err || succ){
+            j++;
+            if(j < model.length)
+            RenderButtonModel(bdirname,i,j,callback);
+            else
+                callback(null,"SuccessFull!");
+        }
+    });
+}
+function RenderButtonShot(bdirname,i,j,callback,callback2){
+    let cmd = RenderButtonCommand
+    .replace("MODEL_SUIT",model[j])
+    .replace("MODEL_SUIT",model[j])
+    .replace("SHOT_SUIT",shots[i])
+    .replace("SHOT_SUIT",i+1)
+    .replace("DIRECTORY_NAME",bdirname)
+    .replace("DIRECTORY_NAME",bdirname)
+
+    exec(cmd,(error,stdout,stderr) => {
+        if(error){
+            console.log(error);
+            callback(error,null);
+            callback2(error,null);
+            return;
+        }   
+        if(stderr){
+            console.log(stderr);
+            callback(stderr,null);
+            callback2(stderr,null);
+            return;
+        } 
+        console.log(stdout);
+        i++;
+        if(i < shots.length)
+            RenderButtonShot(bdirname,i,j,callback,callback2);
+        else
+            callback2(null,1);
+    })
+}
+function SetButtonModel(color,bdirname,shots,i,j,callback){
+    SetButtonShot(color,bdirname,shots,i,j,callback,(err,succ)=>{
+        if(!err || succ){
+            j++;
+            if(j < model.length)
+                SetButtonModel(color,bdirname,shots,i,j,callback);
+            else
+//                callback(null,"SuccessFull!");
+                RenderButtonModel(bdirname,0,0,callback)
+        }
+    });
+}
+function SetButtonShot(color,bdirname,shots,i,j,callback,callbackInner){
+    let cmd = ButtonSetColorCommand.replace("COLOR_VALUE",color)
+    .replace("DIRECTORY_NAME",bdirname)
+    .replace("MODEL_SUIT",model[j])
+    .replace("MODEL_SUIT",model[j])
+    .replace("SHOT_BLENDER",shots[i] + ".blend")
+    .replace("SHOT_FILE",shots[i]);
+
+    exec(cmd,(error,stdout,stderr) => {
+        if(error){
+            console.log(error);
+            callback(error,null);
+            callbackInner(error,null);
+            return;
+        }
+        if(stderr){
+            console.log(stderr);
+            callback(stderr,null);
+            callbackInner(error,null);
+            return;
+        }
+        console.log(stdout);
+        i++;
+
+        if(i < shots.length)
+            SetLiningShot(color,bdirname,shots,i,j,callback,callbackInner);
+        else{
+            callbackInner(null,1);
+        }
+    })
+}
+

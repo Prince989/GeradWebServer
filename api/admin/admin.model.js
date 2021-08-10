@@ -52,6 +52,25 @@ module.exports = {
             }
         );
     },
+    InsertButton : (data,callBack) => {
+        pool.query(
+            `Insert into buttons (name,color,content,price,dirname,image) Values(?,?,?,?,?,?)`,
+            [
+                data.name,
+                data.color,
+                data.content,
+                data.price,
+                data.dirname,
+                data.image
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    },
     deleteFabric : (data,callback)=> {
         pool.query(
             `delete from fabrics where id = ?`,
@@ -69,6 +88,20 @@ module.exports = {
     deleteLining : (data,callback)=> {
         pool.query(
             `delete from linings where id = ?`,
+            [
+                data.id
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callback(error);
+                }
+                return callback(null, results);
+            }
+        );
+    },
+    deleteButton : (data,callback)=> {
+        pool.query(
+            `delete from buttons where id = ?`,
             [
                 data.id
             ],
@@ -108,6 +141,20 @@ module.exports = {
             }
         );
     },
+    selectButtonDirById : (data,callback) => {
+        pool.query(
+            `select dirname from buttons where id = ?`,
+            [
+                data.id
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callback(error);
+                }
+                return callback(null, results);
+            }
+        );
+    },
     getAllFabrics: (data,callBack) => {
         let ratio = parseInt(data.ratio);
         let from = parseInt(data.index * ratio);
@@ -130,6 +177,23 @@ module.exports = {
         let from = parseInt(data.index * ratio);
         pool.query(
                 `Select id , name , image , content , price From linings limit ? , ?`,
+            [
+                from,
+                ratio
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+                return callBack(null, results);
+            }
+        );
+    }, 
+    getAllButtons : (data,callBack) => {
+        let ratio = parseInt(data.ratio);
+        let from = parseInt(data.index * ratio);
+        pool.query(
+                `Select id , name , image , content , price From buttons limit ? , ?`,
             [
                 from,
                 ratio

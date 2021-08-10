@@ -3,15 +3,20 @@ const {
     fetchDirs,
     AddFabric,
     AddLining,
+    AddButton,
     FabricRenderPreview,
+    ButtonRenderPreview,
+    LiningRenderPreview,
     FabricRender,
     LiningRender,
+    ButtonRender,
     fabricList,
     liningList,
+    buttonList,
     DeleteFabric,
     DeleteLining,
+    DeleteButton,
     fetchAdminMenu,
-    LiningRenderPreview
 } = require("./admin.controller");
 const {
     checkToken
@@ -21,14 +26,19 @@ router.get("/fetch/:object/dirs",fetchDirs);
 router.get("/fetch/admin/menu",fetchAdminMenu);
 router.get("/fabric/list/fetch", fabricList);
 router.get("/lining/list/fetch", liningList);
+router.get("/button/list/fetch", buttonList);
 router.post("/fabric/upload",AddFabric);
 router.post("/lining/upload",AddLining);
+router.post("/button/upload",AddButton);
 router.post("/fabric/set/tile",FabricRenderPreview);
 router.post("/lining/set/color",LiningRenderPreview);
+router.post("/button/set/color",ButtonRenderPreview);
 router.post("/fabric/render",FabricRender);
 router.post("/lining/render",LiningRender);
+router.post("/button/render",ButtonRender);
 
 router.delete("/fabric/delete/:id",DeleteFabric);
 router.delete("/lining/delete/:id",DeleteLining);
+router.delete("/button/delete/:id",DeleteButton);
 
 module.exports = router;
