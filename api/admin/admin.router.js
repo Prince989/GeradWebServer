@@ -4,12 +4,14 @@ const {
     AddFabric,
     AddLining,
     AddButton,
-    FabricRenderPreview,
+ /*   FabricRenderPreview,
     ButtonRenderPreview,
     LiningRenderPreview,
     FabricRender,
     LiningRender,
-    ButtonRender,
+    ButtonRender,*/
+    Render,
+    Preview,
     fabricList,
     liningList,
     buttonList,
@@ -17,6 +19,7 @@ const {
     DeleteLining,
     DeleteButton,
     fetchAdminMenu,
+    testv
 } = require("./admin.controller");
 const {
     checkToken
@@ -30,12 +33,15 @@ router.get("/button/list/fetch", buttonList);
 router.post("/fabric/upload",AddFabric);
 router.post("/lining/upload",AddLining);
 router.post("/button/upload",AddButton);
-router.post("/fabric/set/tile",FabricRenderPreview);
+router.post("/:mode/render",Render);
+router.post("/:mode/preview",Preview);
+/*router.post("/fabric/set/tile",FabricRenderPreview);
 router.post("/lining/set/color",LiningRenderPreview);
 router.post("/button/set/color",ButtonRenderPreview);
 router.post("/fabric/render",FabricRender);
 router.post("/lining/render",LiningRender);
-router.post("/button/render",ButtonRender);
+router.post("/button/render",ButtonRender);*/
+router.get("/test/test",testv);
 
 router.delete("/fabric/delete/:id",DeleteFabric);
 router.delete("/lining/delete/:id",DeleteLining);

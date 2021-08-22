@@ -20,18 +20,14 @@ const {
 const {
     eshots,
     emodel,
-    renderFabrics,
-    previewLiningRender,
-    previewFabricRender,
-    previewButtonRender,
-    renderLinings,
-    renderButtons,
+    renderPreview,
+    finalRender
 } = require("../../command.handler");
 
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
-const prefix_url = "http://192.168.10.120:8080";
-const local_prefix_url = "E:/GeradWebServer/GeradWebServer/public/";
+const prefix_url = "http://192.168.10.57:8080";
+const local_prefix_url = "C:/GeradWebServer/public/";
 
 async function createDir(dir) {
     try {
@@ -103,10 +99,6 @@ module.exports = {
         let fdirname = req.body.name.toLowerCase();
     
         DiffuseMap = req.files.DiffuseMap;
-        NormalMap = req.files.NormalMap;
-        AlphaMap = req.files.AlphaMap;
-        RoughnessMap = req.files.RoughnessMap;
-        MetalMap = req.files.MetalMap;
         Icon = req.files.Icon;
 
         try{
@@ -119,23 +111,7 @@ module.exports = {
         }
         uploadPath = `.\\public\\uploads\\fabrics\\${fdirname}\\`;
     
-        DiffuseMap.mv(uploadPath + "DiffuseMap.jpg", function (err) {
-            if (err)
-                return res.status(500).send(err);
-        });
-        NormalMap.mv(uploadPath + "NormalMap.jpg", function (err) {
-            if (err)
-                return res.status(500).send(err);
-        });
-        RoughnessMap.mv(uploadPath + "RoughnessMap.jpg", function (err) {
-            if (err)
-                return res.status(500).send(err);
-        });
-        AlphaMap.mv(uploadPath + "AlphaMap.jpg", function (err) {
-            if (err)
-                return res.status(500).send(err);
-        });
-        MetalMap.mv(uploadPath + "MetalMap.jpg", function (err) {
+        DiffuseMap.mv(uploadPath + "upload.jpg", function (err) {
             if (err)
                 return res.status(500).send(err);
         });
@@ -253,6 +229,7 @@ module.exports = {
             }
         });
     },
+    /*
     FabricRenderPreview : (req,res) =>{
         suitTile = req.body.suitTile
         collarTile = req.body.collarTile
@@ -312,20 +289,19 @@ module.exports = {
         });
     },
     FabricRender : (req,res) => {
-        suitTile = req.body.suitTile
-        collarTile = req.body.collarTile
+        tile = req.body.tile
         fdirname = req.body.fdirname
 
-        if(!suitTile)
+        if(!tile)
             return res.json({
-                Message : "Suit tile not Set!"
+                Message : "tile not Set!"
             })
-        if(!collarTile){
+        if(!fdirname)
             return res.json({
-                Message : "Collar tile not Set!"
+                Message : "dirname not Set!"
             })
-        }
-        renderFabrics(suitTile,collarTile,fdirname,(err,str) => {
+        
+        finalRender(tile,fdirname,(err,str) => {
             if(err){
                 res.json({
                     success : 0,
@@ -419,6 +395,7 @@ module.exports = {
             }
         })
     },
+    */
     DeleteFabric : (req,res) => { 
         let id = req.params.id;
         let data = {};
@@ -736,6 +713,96 @@ module.exports = {
             });
             res.json(output);
         })
+    },
+    Render : (req,res) => {
+        tile = req.body.tile
+        fdirname = req.body.fdirname
+        mode = req.params.mode
+
+        if(!tile)
+            return res.json({
+                Message : "tile not Set!"
+            })
+        if(!fdirname)
+            return res.json({
+                Message : "dirname not Set!"
+            })
+        if(!mode)
+            return res.json({
+                Message : "mode not Set!"
+            })
+
+        finalRender(mode,fdirname,tile,(err,str) => {
+            if(err){
+                res.json({
+                    success : 0,
+                    message : err
+                })
+            }
+            if(str){
+                urls = [];
+                for(i = 0;i < emodel.length;i++){
+                    address = `${prefix_url}/${mode.capitalize()}s/m/${emodel[i]}/${fdirname}`
+                    for(j = 0;j < eshots.length;j++){
+                        url = `${address}/${j+1}/render.png`
+                        urls.push(url);
+                    }
+                }
+                res.json({
+                    success : 1,
+                    message : `${mode.capitalize()}s Rendered Successfully!`,
+                    images : urls
+                })
+            }
+        })
+    },
+    Preview : (req,res) => {
+        tile = req.body.tile
+        fdirname = req.body.fdirname
+        mode = req.params.mode
+
+        if(!tile)
+            return res.json({
+                Message : "tile not Set!"
+            })
+        if(!fdirname)
+            return res.json({
+                Message : "dirname not Set!"
+            })
+        if(!mode)
+            return res.json({
+                Message : "mode not Set!"
+            })
+        
+        renderPreview(mode,fdirname,tile,(err,str) => {
+            if(err){
+                res.json({
+                    success : 0,
+                    message : err
+                })
+            }
+            if(str){
+                urls = [];
+                address = `${prefix_url}/${capitalize(mode)}s/m/${emodel[0]}/${fdirname}`
+                for(j = 0;j < eshots.length;j++){
+                    url = `${address}/${j+1}/render.png`
+                    urls.push(url);
+                }
+                res.json({
+                    success : 1,
+                    message : `${capitalize(mode)}s Rendered Successfully!`,
+                    images : urls
+                })
+            }
+        })
+    },
+    testv : (req,res) =>{
+        test("alo",(result) => {
+            console.log(result);
+            res.json({
+                "v" : "1"
+            });
+        },1,2,3,4,5,6)
     }
 };
 
@@ -792,4 +859,15 @@ function removeAllButtonRenderDirectories(fdirname,i,callBack){
             }
         })
     }
+}
+function capitalize(s){
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+function test(cmd,callback){
+    console.log(cmd);
+    console.log(callback);
+    for(i = 0;i < arguments.length;i++){
+        console.log(arguments[i]);
+    }
+    callback(1);
 }

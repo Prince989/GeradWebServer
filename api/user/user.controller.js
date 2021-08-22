@@ -11,7 +11,7 @@ const {
 
 } = require("./user.model");
 
-const prefix_url = "http://192.168.10.120:8080/";
+const prefix_url = "http://192.168.10.57:8080/";
 const postfix_url = "render0001.png";
 
 module.exports = {
