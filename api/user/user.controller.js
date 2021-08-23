@@ -1,10 +1,9 @@
 const {
+    getModes,
     getDefaultFabric,
     getDefaultLining,
     getDefaultButton,
-    getAllFabrics,
-    getAllLinings,
-    getAllButtons,
+    getAllMaterials,
     getFabricDir,
     getLiningDir,
     getButtonDir,
@@ -12,9 +11,30 @@ const {
 } = require("./user.model");
 
 const prefix_url = "http://192.168.10.57:8080/";
-const postfix_url = "render0001.png";
+const postfix_url = "render.png";
 
 module.exports = {
+    fetchMenu : (req,res) => {
+        getModes((err,results) => {
+            if(err){
+                return res.status(502).json({
+                    "success" : "0",
+                    "Message" : "Problem with database:" + err
+                })
+            }
+            output = []
+            results.map(item => {
+                output.push(
+                    {
+                        "id" : item.id,
+                        "title" : item.title,
+                        "show_name" : item.show_name,
+                    }
+                )
+            })
+            return res.json(output)
+        })
+    },
     getDefault: (req, res) => {
 
         let FabricUrl = "";
@@ -83,60 +103,13 @@ module.exports = {
             });
         });
     },
-    fabricList: (req, res) => {
+    materialList : (req,res) => {
         let data = [];
-        getAllFabrics(data,(err, results) => {
+        data["mode"] = req.params.mode
+        getAllMaterials(data,(err, results) => {
             if (err) {
                 console.log(err);
-                return res.status(500).json({
-                    success: 0,
-                    message: "Database connection errror"
-                });
-            }
-            let output = [];
-            results.map(item => {
-                output.push(
-                    {
-                        "id" : item.id,
-                        "name": item.name,
-                        "image": item.image,
-                        "content": item.content,
-                        "price": item.price,
-                    }
-                )
-            });
-            res.json(output);
-        });
-    },
-    liningList: (req, res) => {
-        getAllLinings( (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
-                    success: 0,
-                    message: "Database connection errror"
-                });
-            }
-            let output = [];
-            results.map(item => {
-                output.push(
-                    {
-                        "id" : item.id,
-                        "name": item.name,
-                        "image": item.image,
-                        "content": item.content,
-                        "price": item.price,
-                    }
-                )
-            });
-            res.json(output);
-        });
-    },
-    buttonList: (req, res) => {
-        getAllButtons( (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
+                return res.status(502).json({
                     success: 0,
                     message: "Database connection errror"
                 });
@@ -205,5 +178,8 @@ module.exports = {
                 });
             });
         });
+    },
+    getRender  : (req,res) =>{
+        console.log(req);
     }
 };
