@@ -7,10 +7,10 @@ const {
     getFabricDir,
     getLiningDir,
     getButtonDir,
-
+    getMaterialDir
 } = require("./user.model");
 
-const prefix_url = "http://192.168.10.57:8080/";
+const prefix_url = "http://192.168.10.120:8080/";
 const postfix_url = "render.png";
 
 module.exports = {
@@ -180,6 +180,52 @@ module.exports = {
         });
     },
     getRender  : (req,res) =>{
-        console.log(req);
+        let renderReqs = req.body;
+        let dirs = []
+        let i = 0;
+        getDirsRecursive(renderReqs,i,dirs,(err,succ) => {
+            if(err){
+                return res.json({
+                    "Success" : "0",
+                    "Message" : err
+                })
+            }
+            let output = [];
+            dirs.map(item => {
+                let Directory = `${prefix_url}${capitalize(item.mode)}s/${req.params.size}/${req.params.model}/${item.dirname}/${req.params.shot}/${postfix_url}`;
+            
+                output.push(Directory);
+            })
+            return res.json(output);
+        });
     }
 };
+
+function getDirsRecursive(reqs,i,results,callback){
+    if(i >= reqs.length){
+        callback(null,results);
+        return;
+    }
+
+    let mode = reqs[i].mode
+    let id = reqs[i].id
+    let data = []
+    data["id"] = id;
+
+    getMaterialDir(data,(err,result) => {
+        if(err){
+            callback(err,null);
+            return;
+        }
+        dirname = result[0].dirname
+        results.push({
+            "mode" : mode,
+            "dirname" : dirname
+        });
+        i++;
+        getDirsRecursive(reqs,i,results,callback);
+    });
+}
+function capitalize(s){
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}

@@ -60,8 +60,20 @@ module.exports = {
                 callback(error);
             }
             return callback(null, results);
-        }
-    );
+        });
+    },
+    getMaterialDir : (data,callback) => {
+        pool.query(
+            `Select dirname From materials where id = ?`,
+        [
+            data.id
+        ],
+        (error, results, fields) => {
+            if (error) {
+                callback(error);
+            }
+            return callback(null, results);
+        });
     },
     getFabricDir: (id, callBack) => {
         pool.query(
