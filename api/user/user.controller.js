@@ -1,20 +1,40 @@
 const {
+    getModes,
     getDefaultFabric,
     getDefaultLining,
     getDefaultButton,
-    getAllFabrics,
-    getAllLinings,
-    getAllButtons,
+    getAllMaterials,
     getFabricDir,
     getLiningDir,
     getButtonDir,
-
+    getMaterialDir
 } = require("./user.model");
 
 const prefix_url = "http://192.168.10.120:8080/";
-const postfix_url = "render0001.png";
+const postfix_url = "render.png";
 
 module.exports = {
+    fetchMenu : (req,res) => {
+        getModes((err,results) => {
+            if(err){
+                return res.status(502).json({
+                    "success" : "0",
+                    "Message" : "Problem with database:" + err
+                })
+            }
+            output = []
+            results.map(item => {
+                output.push(
+                    {
+                        "id" : item.id,
+                        "title" : item.title,
+                        "show_name" : item.show_name,
+                    }
+                )
+            })
+            return res.json(output)
+        })
+    },
     getDefault: (req, res) => {
 
         let FabricUrl = "";
@@ -83,60 +103,13 @@ module.exports = {
             });
         });
     },
-    fabricList: (req, res) => {
+    materialList : (req,res) => {
         let data = [];
-        getAllFabrics(data,(err, results) => {
+        data["mode"] = req.params.mode
+        getAllMaterials(data,(err, results) => {
             if (err) {
                 console.log(err);
-                return res.status(500).json({
-                    success: 0,
-                    message: "Database connection errror"
-                });
-            }
-            let output = [];
-            results.map(item => {
-                output.push(
-                    {
-                        "id" : item.id,
-                        "name": item.name,
-                        "image": item.image,
-                        "content": item.content,
-                        "price": item.price,
-                    }
-                )
-            });
-            res.json(output);
-        });
-    },
-    liningList: (req, res) => {
-        getAllLinings( (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
-                    success: 0,
-                    message: "Database connection errror"
-                });
-            }
-            let output = [];
-            results.map(item => {
-                output.push(
-                    {
-                        "id" : item.id,
-                        "name": item.name,
-                        "image": item.image,
-                        "content": item.content,
-                        "price": item.price,
-                    }
-                )
-            });
-            res.json(output);
-        });
-    },
-    buttonList: (req, res) => {
-        getAllButtons( (err, results) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({
+                return res.status(502).json({
                     success: 0,
                     message: "Database connection errror"
                 });
@@ -205,5 +178,54 @@ module.exports = {
                 });
             });
         });
+    },
+    getRender  : (req,res) =>{
+        let renderReqs = req.body;
+        let dirs = []
+        let i = 0;
+        getDirsRecursive(renderReqs,i,dirs,(err,succ) => {
+            if(err){
+                return res.json({
+                    "Success" : "0",
+                    "Message" : err
+                })
+            }
+            let output = [];
+            dirs.map(item => {
+                let Directory = `${prefix_url}${capitalize(item.mode)}s/${req.params.size}/${req.params.model}/${item.dirname}/${req.params.shot}/${postfix_url}`;
+            
+                output.push(Directory);
+            })
+            return res.json(output);
+        });
     }
 };
+
+function getDirsRecursive(reqs,i,results,callback){
+    if(i >= reqs.length){
+        callback(null,results);
+        return;
+    }
+
+    let mode = reqs[i].mode
+    let id = reqs[i].id
+    let data = []
+    data["id"] = id;
+
+    getMaterialDir(data,(err,result) => {
+        if(err){
+            callback(err,null);
+            return;
+        }
+        dirname = result[0].dirname
+        results.push({
+            "mode" : mode,
+            "dirname" : dirname
+        });
+        i++;
+        getDirsRecursive(reqs,i,results,callback);
+    });
+}
+function capitalize(s){
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}

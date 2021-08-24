@@ -1,6 +1,18 @@
 const pool = require("../../config/database");
 
 module.exports = {
+    getModes : (callback) => {
+        pool.query(
+            `Select * From modes`,
+            [],
+            (error, results, fields) => {
+                if (error) {
+                    callback(error);
+                }
+                return callback(null, results);
+            }
+        );
+    },
     getDefaultFabric : (callBack) => {
         pool.query(
                 `Select name , image , dirname From fabrics limit 1`,
@@ -37,42 +49,31 @@ module.exports = {
             }
         );
     },
-    getAllFabrics: (data,callBack) => {
+    getAllMaterials : (data,callback) => {
         pool.query(
-                `Select id , name , image , content , price From fabrics`,
-            [
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
+            `Select ma.id , name , image , content , price From materials ma inner join modes mo on ma.mode = mo.id where mo.title = ?`,
+        [
+            data.mode
+        ],
+        (error, results, fields) => {
+            if (error) {
+                callback(error);
             }
-        );
+            return callback(null, results);
+        });
     },
-    getAllLinings: (callBack) => {
+    getMaterialDir : (data,callback) => {
         pool.query(
-                `Select id , name , image , content , price From linings`,
-            [],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
+            `Select dirname From materials where id = ?`,
+        [
+            data.id
+        ],
+        (error, results, fields) => {
+            if (error) {
+                callback(error);
             }
-        );
-    },
-    getAllButtons: (callBack) => {
-        pool.query(
-                `Select id , name , image , content , price From buttons`,
-            [],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
+            return callback(null, results);
+        });
     },
     getFabricDir: (id, callBack) => {
         pool.query(
