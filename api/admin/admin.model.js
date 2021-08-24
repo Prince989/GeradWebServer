@@ -2,10 +2,10 @@ const pool = require("../../config/database");
 
 module.exports = {
     getDirs : (data,callBack) => {
-        let obj = data.object
         pool.query(
-            `Select dirname From ${obj}`,
+            `Select dirname From materials ma Inner Join modes mo on ma.mode = mo.id where mo.title = ?`,
             [
+                data.mode
             ],
             (error, results, fields) => {
                 if (error) {
@@ -15,15 +15,16 @@ module.exports = {
             }
         );
     },
-    InsertFabric : (data,callBack) => {
+    InsertMaterial : (data,callBack) => {
         pool.query(
-            `Insert into fabrics (name,content,price,dirname,image) Values(?,?,?,?,?)`,
+            `Insert into materials (name,content,price,dirname,image,mode) Values(?,?,?,?,?,(select id from modes where title = ?))`,
             [
                 data.name,
                 data.content,
                 data.price,
                 data.dirname,
-                data.image
+                data.image,
+                data.mode
             ],
             (error, results, fields) => {
                 if (error) {
@@ -33,47 +34,9 @@ module.exports = {
             }
         );
     },
-    InsertLining : (data,callBack) => {
+    deleteMaterial : (data,callback)=> {
         pool.query(
-            `Insert into linings (name,color,content,price,dirname,image) Values(?,?,?,?,?,?)`,
-            [
-                data.name,
-                data.color,
-                data.content,
-                data.price,
-                data.dirname,
-                data.image
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    },
-    InsertButton : (data,callBack) => {
-        pool.query(
-            `Insert into buttons (name,color,content,price,dirname,image) Values(?,?,?,?,?,?)`,
-            [
-                data.name,
-                data.color,
-                data.content,
-                data.price,
-                data.dirname,
-                data.image
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    },
-    deleteFabric : (data,callback)=> {
-        pool.query(
-            `delete from fabrics where id = ?`,
+            `delete from materials where id = ?`,
             [
                 data.id
             ],
@@ -85,9 +48,9 @@ module.exports = {
             }
         );
     },
-    deleteLining : (data,callback)=> {
+    selectMaterialDirById : (data,callback) => {
         pool.query(
-            `delete from linings where id = ?`,
+            `select dirname from materials where id = ?`,
             [
                 data.id
             ],
@@ -99,68 +62,13 @@ module.exports = {
             }
         );
     },
-    deleteButton : (data,callback)=> {
-        pool.query(
-            `delete from buttons where id = ?`,
-            [
-                data.id
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callback(error);
-                }
-                return callback(null, results);
-            }
-        );
-    },
-    selectFabricDirById : (data,callback) => {
-        pool.query(
-            `select dirname from fabrics where id = ?`,
-            [
-                data.id
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callback(error);
-                }
-                return callback(null, results);
-            }
-        );
-    },
-    selectLiningDirById : (data,callback) => {
-        pool.query(
-            `select dirname from linings where id = ?`,
-            [
-                data.id
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callback(error);
-                }
-                return callback(null, results);
-            }
-        );
-    },
-    selectButtonDirById : (data,callback) => {
-        pool.query(
-            `select dirname from buttons where id = ?`,
-            [
-                data.id
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callback(error);
-                }
-                return callback(null, results);
-            }
-        );
-    },
-    getAllFabrics: (data,callBack) => {
+    getAllMaterials :  (data,callBack) => {
         let ratio = parseInt(data.ratio);
         let from = parseInt(data.index * ratio);
         pool.query(
-                `Select id , name , image , content , price From fabrics limit ? , ?`,
+                `Select ma.id , name , image , content , price From materials ma inner join modes mo on ma.mode = mo.id where mo.title = ? limit ? , ?`,
             [
+                mode,
                 from,
                 ratio
             ],
@@ -172,49 +80,43 @@ module.exports = {
             }
         );
     },
-    getAllLinings : (data,callBack) => {
-        let ratio = parseInt(data.ratio);
-        let from = parseInt(data.index * ratio);
-        pool.query(
-                `Select id , name , image , content , price From linings limit ? , ?`,
-            [
-                from,
-                ratio
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    }, 
-    getAllButtons : (data,callBack) => {
-        let ratio = parseInt(data.ratio);
-        let from = parseInt(data.index * ratio);
-        pool.query(
-                `Select id , name , image , content , price From buttons limit ? , ?`,
-            [
-                from,
-                ratio
-            ],
-            (error, results, fields) => {
-                if (error) {
-                    callBack(error);
-                }
-                return callBack(null, results);
-            }
-        );
-    }, 
     getAdminMenu : (callBack) => {
         pool.query(
-            `Select * From admin_menu`,
+            `Select * From modes`,
             [],
             (error, results, fields) => {
                 if (error) {
                     callBack(error);
                 }
                 return callBack(null, results);
+            }
+        );
+    },
+    getTiles : (data,callBack) => {
+        pool.query(
+            `Select scale_key,scale_name From modes inner join texture_scale on modes.id = texture_scale.object_id where modes.title = ? `,
+            [
+                data.value
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callBack(error);
+                }
+              return callBack(null, results);
+            }
+        );
+    }, 
+    checkModeExists : (data,callback) => {
+        pool.query(
+            `Select count(*) as mode from modes where title = ?`,
+            [
+                data.mode
+            ],
+            (error, results, fields) => {
+                if (error) {
+                    callback(error);
+                }
+                return callback(null, results);
             }
         );
     }

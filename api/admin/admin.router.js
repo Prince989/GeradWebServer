@@ -1,44 +1,29 @@
 const router = require("express").Router();
 const {
     fetchDirs,
-    AddFabric,
-    AddLining,
-    AddButton,
-    FabricRenderPreview,
-    ButtonRenderPreview,
-    LiningRenderPreview,
-    FabricRender,
-    LiningRender,
-    ButtonRender,
-    fabricList,
-    liningList,
-    buttonList,
-    DeleteFabric,
-    DeleteLining,
-    DeleteButton,
+    AddMaterial,
+    DeleteMaterial,
+    materialList,
+    Render,
+    Preview,
     fetchAdminMenu,
+    fetchTiles
 } = require("./admin.controller");
 const {
     checkToken
-} = require("../../auth/token_validation");
+} = require("../../middlewares/token_validation");
+const{
+    checkMode
+} = require("../../middlewares/check.mode");
 
-router.get("/fetch/:object/dirs",fetchDirs);
+router.get("/fetch/:mode/dirs",checkMode,fetchDirs);
+router.get("/:value/tiles",fetchTiles);
 router.get("/fetch/admin/menu",fetchAdminMenu);
-router.get("/fabric/list/fetch", fabricList);
-router.get("/lining/list/fetch", liningList);
-router.get("/button/list/fetch", buttonList);
-router.post("/fabric/upload",AddFabric);
-router.post("/lining/upload",AddLining);
-router.post("/button/upload",AddButton);
-router.post("/fabric/set/tile",FabricRenderPreview);
-router.post("/lining/set/color",LiningRenderPreview);
-router.post("/button/set/color",ButtonRenderPreview);
-router.post("/fabric/render",FabricRender);
-router.post("/lining/render",LiningRender);
-router.post("/button/render",ButtonRender);
+router.get("/:mode/list/fetch",checkMode, materialList);
+router.post("/:mode/upload",checkMode,AddMaterial);
+router.post("/:mode/render",checkMode,Render);
+router.post("/:mode/preview",checkMode,Preview);
 
-router.delete("/fabric/delete/:id",DeleteFabric);
-router.delete("/lining/delete/:id",DeleteLining);
-router.delete("/button/delete/:id",DeleteButton);
+router.delete("/:mode/delete/:id",checkMode,DeleteMaterial);
 
 module.exports = router;
