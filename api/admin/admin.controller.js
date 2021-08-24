@@ -7,7 +7,7 @@ const {
     selectMaterialDirById,
     InsertMaterial,
     getAdminMenu,
-    getModeId,
+    getTiles,
     deleteMaterial
 } = require("./admin.model");
 
@@ -20,8 +20,8 @@ const {
 
 //const { hashSync, genSaltSync, compareSync } = require("bcrypt");
 const { sign } = require("jsonwebtoken");
-const prefix_url = "http://192.168.10.57:8080";
-const local_prefix_url = "C:/GeradWebServer-PhotoShop/public/";
+const prefix_url = "http://192.168.10.120:8080";
+const local_prefix_url = "E:/GeradWebServer-PhotoShop/public/";
 
 async function createDir(dir) {
     try {
@@ -234,10 +234,10 @@ module.exports = {
                 output.push(
                     {
                         id : item.id,
-                        value : item.value,
-                        type: item.type,
+                        value : item.title,
+                        type : item.type,
                         show_name : item.show_name,
-                        icon : `${prefix_url}/listIcons/${item.value}s/Main_Icon/${item.value}.svg`
+                        icon : `${prefix_url}/listIcons/${item.title}s/Main_Icon/${item.title}.svg`
                     }
                 )
             });
@@ -324,6 +324,30 @@ module.exports = {
                     images : urls
                 })
             }
+        })
+    },
+    fetchTiles :  (req,res) => {
+        let value = req.params.value;
+        let data = [];
+        data["value"] = value;
+        getTiles(data,(err,results) => {
+            if (err) {
+                console.log(err);
+                return res.status(502).json({
+                    success: 0,
+                    message: "Database connection errror"
+                });
+            }
+            let output = [];
+            results.map(item => {
+                output.push(
+                    {
+                        scale_key : item.scale_key,
+                        scale_name : item.scale_name,
+                    }
+                )
+            });
+            res.json(output);
         })
     }
 };

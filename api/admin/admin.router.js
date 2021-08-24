@@ -7,7 +7,7 @@ const {
     Render,
     Preview,
     fetchAdminMenu,
-    testv
+    fetchTiles
 } = require("./admin.controller");
 const {
     checkToken
@@ -17,6 +17,7 @@ const{
 } = require("../../middlewares/check.mode");
 
 router.get("/fetch/:mode/dirs",checkMode,fetchDirs);
+router.get("/:value/tiles",fetchTiles);
 router.get("/fetch/admin/menu",fetchAdminMenu);
 router.get("/:mode/list/fetch",checkMode, materialList);
 router.post("/:mode/upload",checkMode,AddMaterial);

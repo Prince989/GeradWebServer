@@ -92,20 +92,20 @@ module.exports = {
             }
         );
     },
-    getModeId : (data,callback) => {
+    getTiles : (data,callBack) => {
         pool.query(
-            `select id from modes where title = ?`,
+            `Select scale_key,scale_name From modes inner join texture_scale on modes.id = texture_scale.object_id where modes.title = ? `,
             [
-                data.mode
+                data.value
             ],
             (error, results, fields) => {
                 if (error) {
-                    callback(error);
+                    callBack(error);
                 }
-                return callback(null, results);
+              return callBack(null, results);
             }
         );
-    },
+    }, 
     checkModeExists : (data,callback) => {
         pool.query(
             `Select count(*) as mode from modes where title = ?`,
