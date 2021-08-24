@@ -272,7 +272,7 @@ module.exports = {
             if(str){
                 urls = [];
                 for(i = 0;i < emodel.length;i++){
-                    address = `${prefix_url}/${mode.capitalize()}s/m/${emodel[i]}/${fdirname}`
+                    address = `${prefix_url}/${capitalize(mode)}s/m/${emodel[i]}/${fdirname}`
                     for(j = 0;j < eshots.length;j++){
                         url = `${address}/${j+1}/render.png`
                         urls.push(url);
@@ -280,7 +280,7 @@ module.exports = {
                 }
                 res.json({
                     success : 1,
-                    message : `${mode.capitalize()}s Rendered Successfully!`,
+                    message : `${capitalize(mode)}s Rendered Successfully!`,
                     images : urls
                 })
             }
