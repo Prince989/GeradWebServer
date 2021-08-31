@@ -3,7 +3,7 @@ const pool = require("../../config/database");
 module.exports = {
     getModes : (callback) => {
         pool.query(
-            `Select * From modes`,
+            `SELECT m1.id as modeid,title,show_name,type,materials.id as matid,image,dirname from modes m1 inner join materials on m1.id = materials.mode GROUP by m1.id`,
             [],
             (error, results, fields) => {
                 if (error) {

@@ -26,9 +26,14 @@ module.exports = {
             results.map(item => {
                 output.push(
                     {
-                        "id" : item.id,
+                        "id" : item.modeid,
                         "title" : item.title,
                         "show_name" : item.show_name,
+                        "default" : {
+                            "id" : item.matid,
+                            "icon" : item.image,
+                            "img" : `${prefix_url}Fabrics/m/1/${item.dirname}/1/render0001.png`
+                        }
                     }
                 )
             })
@@ -36,7 +41,10 @@ module.exports = {
         })
     },
     getDefault: (req, res) => {
-
+        return res.json({
+            "Message" : "No Default Anymore Send Request Yourself Asshole"
+        })
+/*
         let FabricUrl = "";
         let LiningUrl = "";
         let ButtonUrl = "";
@@ -101,7 +109,7 @@ module.exports = {
                     res.json(output)
                 })
             });
-        });
+        });*/
     },
     materialList : (req,res) => {
         let data = [];
@@ -180,7 +188,7 @@ module.exports = {
         });
     },
     getRender  : (req,res) =>{
-        let renderReqs = req.body;
+        let renderReqs = req.body.renderItem;
         let dirs = []
         let i = 0;
         getDirsRecursive(renderReqs,i,dirs,(err,succ) => {
