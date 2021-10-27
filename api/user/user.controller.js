@@ -13,7 +13,10 @@ const {
   updateVerificationCode,
   setUser,
   fetchSizeElements,
-  fetchCart
+  fetchCart,
+  fetchProfile,
+  updateSize,
+  updateProfile
 } = require("./user.model");
 
 const prefix_url = "http://89.41.42.189:33140/";
@@ -21,7 +24,6 @@ const postfix_url = "render.webp";
 const { sign } = require("jsonwebtoken");
 
 module.exports = {
-
   fetchMenu: (req, res) => {
     getModes((err, results) => {
       if (err) {
@@ -351,24 +353,111 @@ module.exports = {
     });
   },
 
-  fetchCart :(req,res) => {
-      const token = req.params.userToken 
-      fetchCart(token,(error,result)=>{
-          if(error){
-            return res.status(200).json({
-              "success":0,
-              "message":" fetch cart error "
-            })
-          }
-          else{
-              return res.status(200).json({
-                success:1,
-                data:result
-              })
-          }
-      })
-  }
+  getProfile : (req,res) => {
+    let data = {};
+    let token = req.headers.authorization;
+    data["token"] = token;
+    
+    fetchProfile(data,(err,results) => {
+      if(err){
+        return res.json({
+          "Success" : "0",
+          "Message" : err
+        })
+      }
+      return res.json(results)
+    })
+  },
 
+  setProfile : (req,res) => {
+    let data = [];
+    data["firstName"] = req.body?.firstName
+    data["lastName"] = req.body?.lastName
+    data["email"] = req.body?.email
+    data["national_code"] = req.body?.national_code
+    data["postCode"] = req.body?.postCode
+    data["address"] = req.body?.address
+    data["city"] = req.body?.city
+
+    let token = req.headers.authorization;
+
+    if(!token){
+      return res.status(401).json({
+        "Message" : "Unauthorized"
+      })
+    }
+
+    token = token.replace("Bearer ","");
+
+    data["token"] = token;
+
+    updateProfile(data,(err,results) => {
+      if(err){
+        console.log(err);
+        return res.json({
+          Success : "0",
+          Message : err
+        })
+      }
+      return res.json({
+        Success : "1"
+      })
+    })
+
+  },
+
+  setSize: (req, res) => {
+    let sizeBody = req.body.size;
+    let token = req.headers.authorization;
+
+    if(!token){
+      return res.status(401).json({
+        "Message" : "Unauthorized"
+      })
+    }
+
+    token = token.replace("Bearer ","");
+
+    if(!sizeBody){
+      return res.status(400).json({
+        "Message" : "Bad Request"
+      })
+    }
+    let data = {};
+    data["size"] = JSON.stringify(sizeBody);
+    data["token"] = token;
+
+    console.log(data);
+    
+    updateSize(data, (err, result) => {
+      if (err) {
+        return res.json({
+          Success: "0",
+          Message: err,
+        });
+      }
+      return res.json({
+        Success: "1",
+      });
+    });
+  },
+
+  fetchCart: (req, res) => {
+    const token = req.headers.authorization;
+    fetchCart(token, (error, result) => {
+      if (error) {
+        return res.status(200).json({
+          success: 0,
+          message: " fetch cart error " + error,
+        });
+      } else {
+        return res.status(200).json({
+          success: 1,
+          data: result,
+        });
+      }
+    });
+  },
 };
 
 function getDirsRecursive(reqs, i, results, callback) {
