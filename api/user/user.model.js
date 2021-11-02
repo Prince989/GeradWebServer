@@ -150,6 +150,45 @@ module.exports = {
       }
     );
   },
+  existUser : (data,callBack) =>{
+    pool.query(
+      "Select * from `users` where mobile = ?",
+      [data.mobile],
+      (err, results, field) => {
+        if (err) {
+          callBack(err, null);
+          return;
+        }
+        callBack(null, results);
+      }
+    );
+  },
+  loginUser : (data,token,callBack) => {
+    pool.query(
+      "Update `users` Set token = ? where mobile = ?",
+      [token,data.mobile],
+      (err, results, field) => {
+        if (err) {
+          callBack(err, null);
+          return;
+        }
+        callBack(null, results);
+      }
+    );
+  },
+  createUser : (data,token,callBack) => {
+    pool.query(
+      "Insert into `users` (`mobile`,`role`,`token`) values (?,0,?)",
+      [data.mobile,token],
+      (err, results, field) => {
+        if (err) {
+          callBack(err, null);
+          return;
+        }
+        callBack(null, results);
+      }
+    );
+  },
   setUser: (data, token, callBack) => {
     pool.query(
       "Replace into `users` (`id`,`mobile`,`role`,`token`) values ((select u.id from `users` u where mobile = ?),?,0,?)",
@@ -262,7 +301,7 @@ module.exports = {
       }
     );
   },
-  setFavorites : (data,callBack) => {
+  updateFavorites : (data,callBack) => {
     pool.query(
         "Replace into `favorites` (`data`,`user_id`,`image`) values (?,?,?)",
         [
@@ -297,5 +336,51 @@ module.exports = {
           }
         }
       );
+  },
+  insertOrderRender : (data,callback) => {
+    pool.query(
+      "INSERT INTO `order_renders` (url) values (?) ;",
+      [
+        data
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
+  },
+  getLastOrderId : (callback) => {
+    pool.query(
+      "SELECT id FROM `order_renders` ORDER BY ID DESC LIMIT 1",
+      [
+        
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
+  },
+  updateRenderURL : (data,callback) => {
+    pool.query(
+      "update `order_renders` set url = ? where id = ?",
+      [
+        data.url,
+        data.id
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
   }
 };

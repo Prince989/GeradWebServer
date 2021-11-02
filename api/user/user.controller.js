@@ -16,12 +16,32 @@ const {
   fetchCart,
   fetchProfile,
   updateSize,
-  updateProfile
+  updateProfile,
+  fetchFavorites,
+  updateFavorites,
+  loginUser,
+  createUser,
+  existUser,
+  insertOrderRender,
+  updateRenderURL,
+  getLastOrderId
 } = require("./user.model");
 
 const prefix_url = "http://89.41.42.189:33140/";
 const postfix_url = "render.webp";
 const { sign } = require("jsonwebtoken");
+const fsPromises = require("fs").promises;
+const fs = require("fs");
+
+
+async function createDir(dir) {
+  try {
+      await fsPromises.access(dir, fs.constants.F_OK);
+  } catch (e) {
+      await fsPromises.mkdir(dir);
+  }
+}
+
 
 module.exports = {
   fetchMenu: (req, res) => {
@@ -279,7 +299,7 @@ module.exports = {
           const jsontoken = sign({ result: result.id }, "qwe1234", {
             expiresIn: "3h",
           });
-          setUser(data, jsontoken, (err, result) => {
+          /*           setUser(data, jsontoken, (err, result) => {
             if (err) {
               res.status(200).json({
                 success: 0,
@@ -288,6 +308,44 @@ module.exports = {
               res.status(200).json({
                 success: "1",
                 token: jsontoken,
+              });
+            }
+          }); */
+          existUser(data, (err, results) => {
+            if (err) {
+              console.log(err);
+              return res.status(200).json({
+                success: 0,
+                message: err,
+              });
+            }
+            if (results.length > 0) {
+              loginUser(data, jsontoken, (err2, suc) => {
+                if (err2) {
+                  console.log(err2);
+                  return res.status(200).json({
+                    success: 0,
+                    message: err2,
+                  });
+                }
+                return res.status(200).json({
+                  success: "1",
+                  token: jsontoken,
+                });
+              });
+            } else {
+              createUser(data, jsontoken, (err3, succ) => {
+                if (err3) {
+                  console.log(err3);
+                  return res.status(200).json({
+                    success: 0,
+                    message: err3,
+                  });
+                }
+                return res.status(200).json({
+                  success: "1",
+                  token: jsontoken,
+                });
               });
             }
           });
@@ -353,82 +411,81 @@ module.exports = {
     });
   },
 
-  getProfile : (req,res) => {
+  getProfile: (req, res) => {
     let data = {};
     let token = req.headers.authorization;
     data["token"] = token;
-    
-    fetchProfile(data,(err,results) => {
-      if(err){
+
+    fetchProfile(data, (err, results) => {
+      if (err) {
         return res.json({
-          "Success" : "0",
-          "Message" : err
-        })
+          Success: "0",
+          Message: err,
+        });
       }
-      return res.json(results)
-    })
+      return res.json(results);
+    });
   },
 
-  setProfile : (req,res) => {
-    let data = [];
-    data["firstName"] = req.body?.firstName
-    data["lastName"] = req.body?.lastName
-    data["email"] = req.body?.email
-    data["national_code"] = req.body?.national_code
-    data["postCode"] = req.body?.postCode
-    data["address"] = req.body?.address
-    data["city"] = req.body?.city
-
+  setProfile: (req, res) => {
+    let data = {};
+    data["firstName"] = req.body?.firstName;
+    data["lastName"] = req.body?.lastName;
+    data["email"] = req.body?.email;
+    data["national_code"] = req.body?.national_code;
+    data["postCode"] = req.body?.postCode;
+    data["address"] = req.body?.address;
+    data["city"] = req.body?.city;
+    console.log(data);
     let token = req.headers.authorization;
 
-    if(!token){
+    if (!token) {
       return res.status(401).json({
-        "Message" : "Unauthorized"
-      })
+        Message: "Unauthorized",
+      });
     }
 
-    token = token.replace("Bearer ","");
+    token = token.replace("Bearer ", "");
 
     data["token"] = token;
 
-    updateProfile(data,(err,results) => {
-      if(err){
+    updateProfile(data, (err, results) => {
+      if (err) {
         console.log(err);
         return res.json({
-          Success : "0",
-          Message : err
-        })
+          Success: "0",
+          Message: err,
+        });
       }
       return res.json({
-        Success : "1"
-      })
-    })
-
+        Success: "1",
+      });
+    });
   },
 
   setSize: (req, res) => {
     let sizeBody = req.body.size;
     let token = req.headers.authorization;
 
-    if(!token){
+    if (!token) {
       return res.status(401).json({
-        "Message" : "Unauthorized"
-      })
+        Message: "Unauthorized",
+      });
     }
 
-    token = token.replace("Bearer ","");
+    token = token.replace("Bearer ", "");
 
-    if(!sizeBody){
+    if (!sizeBody) {
       return res.status(400).json({
-        "Message" : "Bad Request"
-      })
+        Message: "Bad Request",
+      });
     }
     let data = {};
     data["size"] = JSON.stringify(sizeBody);
     data["token"] = token;
 
     console.log(data);
-    
+
     updateSize(data, (err, result) => {
       if (err) {
         return res.json({
@@ -456,6 +513,92 @@ module.exports = {
           data: result,
         });
       }
+    });
+  },
+  setFavorites: (req, res) => {
+    let token = req.headers.authorization;
+    let body = req.body;
+    let data = [];
+    data["data"] = body;
+    data["token"] = token;
+
+    updateFavorites(data, (err, results) => {
+      if (err) {
+        console.log(err);
+        return res.json({
+          Success: "0",
+          Message: err,
+        });
+      }
+      return res.json({
+        Success: "1",
+      });
+    });
+  },
+  getFavorites: (req, res) => {
+    let token = req.headers.authorization;
+
+    fetchFavorites(token, (err, results) => {
+      if (err) {
+        console.log(err);
+        return res.json({
+          Success: "0",
+          Message: err,
+        });
+      }
+      return res.json({
+        Success: "1",
+        data: results,
+      });
+    });
+  },
+  addOrder: (req, res) => {
+    let uploadPath = "";
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).send("No files were uploaded.");
+    }
+    let renderFile = req.files.renderFile;
+    insertOrderRender("", (err, results) => {
+      if (err) {
+        console.log(err);
+        return res.json({
+          Success: "0",
+          Message: err,
+        });
+      }
+      getLastOrderId((err,result) => {
+        let id = result[0].id;
+        try {
+          createDir(`.\\public\\uploads\\orders\\${id}\\`);
+        } catch (e) {
+          console.log(e);
+          res.status(401).json({
+            Message: e,
+          });
+          return;
+        }
+        uploadPath = `.\\public\\uploads\\orders\\${id}\\`;
+  
+        renderFile.mv(uploadPath + "render.jpg", function (err) {
+          if (err) return res.status(500).send(err);
+        });
+        let data = {};
+        data["id"] = id;
+        data.url = `${prefix_url}uploads/orders/${id}/render.jpg`;
+  
+        updateRenderURL(data,(err,results) => {
+          if(err){
+            console.log(err);
+            return res.json({
+              Success : "0",
+              Message : err
+            })
+          }
+          return res.json({
+            "img_id" : id
+          })
+        })
+      })
     });
   },
 };

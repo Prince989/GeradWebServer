@@ -12,7 +12,10 @@ const {
     setSize,
     getProfile,
     setProfile,
-    fetchCart
+    fetchCart,
+    getFavorites,
+    setFavorites,
+    addOrder
 } = require("./user.controller");
 
 const{
@@ -39,5 +42,12 @@ router.post("/verify/code/",verifyCode);
 
 //Cart
 router.get("/fetch/cart/",checkToken,fetchCart)
+
+//Favorites
+router.get("/fetch/favorites/",checkToken,getFavorites)
+router.post("/set/favorites/",checkToken,setFavorites)
+
+//tempOrder
+router.post("/add/order",addOrder);
 
 module.exports = router;
