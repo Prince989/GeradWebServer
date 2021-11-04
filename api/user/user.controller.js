@@ -1,8 +1,5 @@
 const {
   getModes,
-  getDefaultFabric,
-  getDefaultLining,
-  getDefaultButton,
   getAllMaterials,
   getFabricDir,
   getLiningDir,
@@ -11,7 +8,6 @@ const {
   setVerificationCode,
   checkMobile,
   updateVerificationCode,
-  setUser,
   fetchSizeElements,
   fetchCart,
   fetchProfile,
@@ -24,7 +20,10 @@ const {
   existUser,
   insertOrderRender,
   updateRenderURL,
-  getLastOrderId
+  getLastOrderId,
+  getMaterialForOrder,
+  addCart,
+  checkImageIdExist
 } = require("./user.model");
 
 const prefix_url = "http://89.41.42.189:33140/";
@@ -32,16 +31,17 @@ const postfix_url = "render.webp";
 const { sign } = require("jsonwebtoken");
 const fsPromises = require("fs").promises;
 const fs = require("fs");
-
+const JDate = require("jalali-date");
+const staticRefRatio = 313;
 
 async function createDir(dir) {
   try {
-      await fsPromises.access(dir, fs.constants.F_OK);
+    await fsPromises.access(dir, fs.constants.F_OK);
   } catch (e) {
-      await fsPromises.mkdir(dir);
+    await fsPromises.mkdir(dir);
   }
+  console.log("Directory Made!");
 }
-
 
 module.exports = {
   fetchMenu: (req, res) => {
@@ -515,6 +515,7 @@ module.exports = {
       }
     });
   },
+
   setFavorites: (req, res) => {
     let token = req.headers.authorization;
     let body = req.body;
@@ -535,6 +536,7 @@ module.exports = {
       });
     });
   },
+
   getFavorites: (req, res) => {
     let token = req.headers.authorization;
 
@@ -552,12 +554,15 @@ module.exports = {
       });
     });
   },
+
   addOrder: (req, res) => {
     let uploadPath = "";
-    if (!req.files || Object.keys(req.files).length === 0) {
+    /*     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).send("No files were uploaded.");
-    }
-    let renderFile = req.files.renderFile;
+    } */
+    let imgData = req.body.renderData;
+    // let renderFile = req.files.renderFile;
+
     insertOrderRender("", (err, results) => {
       if (err) {
         console.log(err);
@@ -566,10 +571,10 @@ module.exports = {
           Message: err,
         });
       }
-      getLastOrderId((err,result) => {
+      getLastOrderId(async (err, result) => {
         let id = result[0].id;
         try {
-          createDir(`.\\public\\uploads\\orders\\${id}\\`);
+          await createDir(`.\\public\\uploads\\orders\\${id}\\`);
         } catch (e) {
           console.log(e);
           res.status(401).json({
@@ -578,31 +583,175 @@ module.exports = {
           return;
         }
         uploadPath = `.\\public\\uploads\\orders\\${id}\\`;
-  
-        renderFile.mv(uploadPath + "render.jpg", function (err) {
+
+        /*         var doc = new jsPDF();
+        doc.addImage(imgData, 'PNG', 10, 10);
+        console.log(uploadPath);
+        doc.save(uploadPath + 'render.png'); */
+        var base64Data = imgData.replace(/^data:image\/png;base64,/, "");
+
+        fs.writeFile(
+          uploadPath + "render.png",
+          base64Data,
+          "base64",
+          function (err) {}
+        );
+
+        /*         renderFile.mv(uploadPath + "render.jpg", function (err) {
           if (err) return res.status(500).send(err);
-        });
+        }); */
         let data = {};
         data["id"] = id;
         data.url = `${prefix_url}uploads/orders/${id}/render.jpg`;
-  
-        updateRenderURL(data,(err,results) => {
-          if(err){
+
+        updateRenderURL(data, (err, results) => {
+          if (err) {
             console.log(err);
             return res.json({
-              Success : "0",
-              Message : err
-            })
+              Success: "0",
+              Message: err,
+            });
           }
           return res.json({
-            "img_id" : id
+            img_id: id,
+          });
+        });
+      });
+    });
+  },
+
+  checkOrder : (req,res,next) => {
+    let flag = false;
+    let selectedItem = req.body?.selectedItem;
+
+    if (!selectedItem) {
+      return res.json({
+        Message: "Empty items",
+      });
+    }
+    let img_id = 0;
+
+    for(let obj of selectedItem){
+      if(obj?.image_id){
+        img_id = obj.image_id;
+        flag = true;
+        break;
+      }
+    }
+
+    if(!flag){
+      return res.json({
+        Message: "Image Not Set",
+      });
+    }
+
+    checkImageIdExist(img_id,(err,results) => {
+      if(err){
+        console.log(err);
+        return res.json({
+          Message : err
+        })
+      }
+      if(results.length > 0){
+        return res.json({
+          Message: "The Order Already Exists",
+        });
+      }else{
+        next();
+      }
+    })
+  },
+
+  updateOrder: (req, res) => {
+    let token = req.headers?.authorization;
+    if (!token) {
+      return res.json({
+        Message: "UnAuthorized",
+      });
+    }
+
+    let selectedItem = req.body?.selectedItem;
+
+
+    let choosenMaterials = [];
+    let totalPrice = 0;
+    let name = "کت شلوار";
+    let time = getTime();
+    let img_id = 0;
+    let size = null;
+    let status = "منتظر پرداخت";
+    let paid = 0;
+
+    getMaterialForOrder((err, results) => {
+      if (err) {
+        console.log(err);
+        return res.json({
+          Message: err,
+        });
+      }
+      for(let mat of selectedItem){
+        if(mat?.img_id){
+          img_id = mat.image_id;
+          console.log(img_id);
+        }
+        if(mat?.size){
+          size = mat.size
+        }
+        if(!mat?.size && !mat?.image_id){
+          choosenMaterials.push(mat);
+        }
+      }
+
+      for (let obj of results) {
+        for (let mat of selectedItem) {
+          if (obj.id == mat?.id) {
+            totalPrice += parseInt(obj.price);
+            if (obj.mode == "fabric") {
+              name = "کت" + obj.name;
+            }
+          }
+        }
+      }
+
+      let order = {
+        ref_id : (parseInt(img_id) * staticRefRatio),
+        name : name,
+        date : time,
+        img_id : img_id,
+        size : JSON.stringify(size),
+        status : status,
+        price : totalPrice,
+        paid : paid,
+        cloth : JSON.stringify(choosenMaterials),
+        token : token
+      };
+
+      addCart(order,(err,result) => {
+        if(err){
+          console.log(err);
+          return res.json({
+            Message : err
           })
+        }
+        return res.json({
+          Success : "1",
+          Message : "Done"
         })
       })
     });
   },
 };
 
+function getTime(){
+  let time = "";
+  let jdate = new JDate();
+  time = jdate.format("YYYY/MM/DD");
+  let t = new Date();
+  let hours = t.getHours();
+  let minutes = t.getMinutes();
+  time += `-${hours}:${minutes}`;
+  return time;
+}
 function getDirsRecursive(reqs, i, results, callback) {
   if (i >= reqs.length) {
     callback(null, results);

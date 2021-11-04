@@ -15,7 +15,9 @@ const {
     fetchCart,
     getFavorites,
     setFavorites,
-    addOrder
+    addOrder,
+    updateOrder,
+    checkOrder
 } = require("./user.controller");
 
 const{
@@ -47,7 +49,10 @@ router.get("/fetch/cart/",checkToken,fetchCart)
 router.get("/fetch/favorites/",checkToken,getFavorites)
 router.post("/set/favorites/",checkToken,setFavorites)
 
-//tempOrder
+//Make Temp Order
 router.post("/add/order",addOrder);
+
+//Set Order
+router.patch("/update/order",checkToken,checkOrder,updateOrder);
 
 module.exports = router;

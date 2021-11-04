@@ -382,5 +382,59 @@ module.exports = {
         callback(null, results);
       }
     );
+  },
+  getMaterialForOrder : (callback) => {
+    pool.query(
+      "select * from materials",
+      [
+        
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
+  },
+  addCart : (data,callback) => {
+    pool.query(
+      "insert into carts (ref_id,name,date,img_id,size,status,price,paid,user_id,cloth) values (?,?,?,?,?,?,?,?,(select id from users where token = ?),?)",
+      [
+        data.ref_id,
+        data.name,
+        data.date,
+        data.img_id,
+        data.size,
+        data.status,
+        data.price,
+        data.paid,
+        data.token,
+        data.cloth
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
+  },
+  checkImageIdExist : (data,callback) => {
+    pool.query(
+      "select * from carts where img_id = ?",
+      [
+        data.img_id
+      ],
+      (err, results, field) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        callback(null, results);
+      }
+    );
   }
 };
