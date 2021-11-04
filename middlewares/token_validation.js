@@ -5,8 +5,7 @@ const {
 
 module.exports = {
     checkToken: (req, res, next) => {
-        let token = req.body.token;
-
+        let token = req.headers.authorization;
         if (token) {
             // Remove Bearer from string
  //           token = token.slice(7);
@@ -14,10 +13,10 @@ module.exports = {
                 if (err) {
                     return res.json({
                         success: 0,
-                        message: "Invalid Token..."
+                        message: "Invalid Token... " + err
                     });
                 } else {
-                    getUserToken(req.body.token,(err,results) =>{
+                    getUserToken(req.headers.authorization,(err,results) =>{
                         if(err){
                             console.log(err);
                             return res.status(500).json({
@@ -26,18 +25,19 @@ module.exports = {
                             });
                         }
                         if(results){
-                            if(results.role == 1){
+                            console.log(results);
+                            // if(results.role == 1){
                                 req.decoded = decoded;
                                 next();
-                            }
-                            else{
+                            // }
+ /*                            else{
                                 return res.json({
                                     success: 0,
                                     message: "Access Denied!"
                                 });
-                            }
+                            } */
                         }else{
-                            res.json({
+                            return res.json({
                                 "Message" : "token is not valid"
                             });
                         }

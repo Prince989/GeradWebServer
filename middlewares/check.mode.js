@@ -48,11 +48,14 @@ module.exports = {
     }
 };
 function checkModesRecursive(req,i,callback){
-    if(i >= req.body.length){
+    if(req.body.renderItem == null)
+        return
+    
+    if(i >= req.body.renderItem.length){
         callback(null,1);
         return;
     }
-    let mode = req.body[i].mode;
+    let mode = req.body.renderItem[i].mode;
     let data = [];
     data["mode"] = mode;
     checkModeExists(data,(err,results) => {
